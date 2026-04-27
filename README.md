@@ -11,6 +11,8 @@
 - **Notes:** Beginners are advised to study the [**forum section about the ExtraFields API**](https://abuyfile.com/ru/forums/cotonti/original/extrafields). [**(code in this file)**](https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php). After installing the plugin, immediately open its extra fields management.
 - **Dependencies:** [**Market PRO v.5+**](https://github.com/webitproff/marketpro-cotonti) by webitproff
 
+<img width="1536" height="1024" alt="Плагин “Extrafields Market-Pro Custom” для Cotonti" src="https://github.com/user-attachments/assets/a5aeb16f-fe2b-496f-b904-ee3c756ccf56" />
+
 ### [**permanent link to the current plugin source code on GitHub**](https://github.com/webitproff/xtradbrowmarket-cotonti)
 
 ## Plugin structure (hooks)
