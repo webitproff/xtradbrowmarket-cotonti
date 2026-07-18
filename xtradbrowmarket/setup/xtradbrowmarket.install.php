@@ -7,12 +7,17 @@
  * в админке можно посмотреть живые примеры оформления.
  * Пояснения и поддержка по вопросам в файле https://abuyfile.com/ru/forums/cotonti/original/extrafields/topic206
  *
+ *
+ * Custom Extrafields Market i18n plugin for Cotonti v1.+, PHP 8.4+, MySQL 8.4 
+ *
+ * Date: Jul 18, 2026
  * @package xtradbrowmarket
- * @version 2.7.9
+ * @version 3.0.0
  * @author webitproff
  * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
  * @license BSD
  */
+
 
 defined('COT_CODE') or die('Wrong URL');
 require_once cot_incfile('xtradbrowmarket', 'plug');
@@ -290,8 +295,8 @@ cot_extrafield_add(
        <input class="form-check-input" type="checkbox" name="{$name}" value="{$value}" {$checked} />
        <label class="form-check-label">{$title}</label>
      </div>',                            // 4. HTML (один чекбокс, API повторит для каждого варианта)
-    'Опция 1,Опция 2,Опция 3',          // 5. Варианты
-    'Опция 1',                           // 6. Значение по умолчанию (можно "Опция 1,Опция 3")
+    'option1,option2,option3',           // 5. Варианты (теперь латиница для удобства локализации)
+    'option1',                           // 6. Значение по умолчанию
     false,                               // 7. Необязательное
     'HTML',                              // 8. Парсер
     'Пример checklistbox (checklistbox)' // 9. Описание
