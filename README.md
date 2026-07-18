@@ -722,3 +722,737 @@ Extrafields Market Custom i18n is not just a small toolkit, but a precise hub th
 [**Support**](https://abuyfile.com/ru/forums/cotonti/original/extrafields)
 
 [**API Extrafields**](https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php)
+
+___
+> RU 
+___
+
+Вот полный перевод документа на русский язык с сохранением всей Markdown-разметки.
+
+```markdown
+## Содержание
+
+1. [Основная информация о плагине](#plugin-info)
+2. [Структура плагина (хуки)](#plugin-structure)
+3. [Мультиязычная поддержка экстраполей (с версии 3.0.0)](#multilingual)
+   1. [Как это работает](#how-it-works)
+   2. [Конфигурация](#configuration)
+   3. [Редактирование переводов](#editing-translations)
+   4. [Отображение на сайте](#display-on-site)
+   5. [Удаление](#deletion)
+   6. [Файлы, добавленные/изменённые для i18n](#i18n-files)
+4. [Пошаговая установка и использование](#step-by-step)
+   1. [Шаг 1. Скачайте плагин](#step-1)
+   2. [Шаг 2. Загрузите плагин на сервер](#step-2)
+   3. [Шаг 3. Настройте шаблон редактирования товара](#step-3)
+   4. [Шаг 4. Настройте шаблон страницы товара (market.tpl)](#step-4)
+   5. [Шаг 5. Настройте шаблон списка товаров (market.list.tpl)](#step-5)
+5. [Отображение пользовательских экстраполей в header.tpl](#header-tpl)
+   1. [Практический пример для header.market.notebook.tpl](#header-notebook-example)
+
+* * *
+
+# Extrafields Market Custom — расширение для Market PRO
+
+![Версия](https://img.shields.io/badge/version-3.0.0-green.svg) ![Совместимость с Cotonti](https://img.shields.io/badge/Cotonti-0.9.26-orange.svg) ![PHP](https://img.shields.io/badge/PHP-8.4-purple.svg) ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg) ![Bootstrap v5.3.8](https://img.shields.io/badge/Bootstrap-v5.3.8-blueviolet.svg) ![Лицензия](https://img.shields.io/badge/license-BSD-blue.svg)
+
+## <a id="plugin-info"></a>Основная информация о плагине
+
+- **Код:** xtradbrowmarket
+- **Назначение:** добавляет дополнительные поля для модуля [**Market PRO v.5**](https://abuyfile.com/ru/market/cotonti/plugs/marketpro) в собственную таблицу базы данных. Начиная с версии 3.0.0 встроена мультиязычная поддержка для текстовых полей.
+- **Версия:** 3.0.0
+- **Дата:** 18 июля 2026 г.
+- **Автор:** webitproff
+- **Копирайт:** © 2026 webitproff
+- **Примечания:** Новичкам рекомендуется изучить [раздел форума по ExtraFields API](https://abuyfile.com/ru/forums/cotonti/original/extrafields). [(код в этом файле)](https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php). После установки плагина сразу откройте управление его экстраполями.
+- **Зависимости:** [Market PRO v.5+](https://github.com/webitproff/marketpro-cotonti) от webitproff
+
+![Плагин «Extrafields Market-Pro Custom» для Cotonti](https://github.com/user-attachments/assets/a5aeb16f-fe2b-496f-b904-ee3c756ccf56)
+
+<img width="1555" height="1012" alt="xtradbrowmarket-cotonti-by-webitproff-2026" src="https://github.com/user-attachments/assets/15edacc8-d583-4b2d-b324-4713fa222fcb" />
+
+### [Постоянная ссылка на исходный код плагина на GitHub](https://github.com/webitproff/xtradbrowmarket-cotonti)
+
+## <a id="plugin-structure"></a>Структура плагина (хуки)
+
+| \# | Часть                    | Файл                                        | Хук                                  |
+|----|--------------------------|---------------------------------------------|---------------------------------------|
+| 1  | extrafields              | xtradbrowmarket.extrafields.php             | admin.extrafields.first               |
+| 2  | header.tags              | xtradbrowmarket.header.tags.php             | header.tags                           |
+| 3  | market.delete.first      | xtradbrowmarket.market.delete.first.php     | market.delete.first \*(новое в 3.0.0)* |
+| 4  | market.edit.tags         | xtradbrowmarket.market.edit.tags.php        | market.edit.tags                      |
+| 5  | market.edit.update.done  | xtradbrowmarket.market.edit.update.done.php | market.edit.update.done               |
+| 6  | market.tags              | xtradbrowmarket.market.tags.php             | market.tags                           |
+| 7  | markettags               | xtradbrowmarket.markettags.php              | markettags.main                       |
+
+*Старый хук `market.edit.delete.done` больше не используется.*
+
+## <a id="multilingual"></a>Мультиязычная поддержка экстраполей (с версии 3.0.0)
+
+Начиная с версии 3.0.0 плагин позволяет **переводить значения текстовых экстраполей** на несколько языков. Это работает для всех полей типа `input` и `textarea`. Вы можете, например, написать описание товара на языке по умолчанию, а затем предоставить переводы на английский, украинский или любой другой настроенный язык — без модификации ядра Cotonti и без установки дополнительных модулей интернационализации.
+
+Переводы хранятся в отдельной таблице базы данных, поэтому исходное значение остаётся нетронутым. Плагин автоматически выбирает правильный перевод в зависимости от языка, выбранного посетителем.
+
+### <a id="how-it-works"></a>Как это работает
+
+- Основное (исходное) значение поля хранится в таблице `cot_xtradbrowmarket`, как и раньше.
+- Для каждого активированного дополнительного языка создаётся отдельная запись в новой таблице `cot_xtradbrowmarket_i18n`. Эта запись содержит ID товара, имя поля, код языка и переведённый текст.
+- При отображении страницы товара плагин проверяет текущий язык пользователя. Если перевод существует, отображается он; в противном случае отображается исходный текст.
+- Если основное поле оказывается пустым, но некоторые переводы заполнены, плагин может подставить первый доступный перевод для языка по умолчанию, предотвращая появление пустых блоков.
+
+Всё это происходит автоматически — достаточно включить мультиязычную поддержку и указать нужные коды языков в конфигурации плагина.
+
+### <a id="configuration"></a>Конфигурация
+
+Плагин добавляет набор опций на стандартную страницу конфигурации Cotonti (`Расширения → Конфигурация`):
+
+- **Включить мультиязычную поддержку** (`xtradbrowmarket_i18n_use`) — включает или отключает всю логику мультиязычности. Когда опция выключена, плагин работает как прежде, а переводы игнорируются (но остаются в базе данных).
+- **Код языка сайта по умолчанию** (`xtradbrowmarket_i18n_lang_code_default`) — язык, для которого значение основного поля считается исходным. Обычно должен совпадать с `defaultlang` вашего сайта.
+- **Первый дополнительный язык** — его код (например, `en`) и флажок активации.
+- **Второй дополнительный язык** — его код (например, `ua`) и флажок активации.
+- **Третий дополнительный язык** — его код (например, `pl`) и флажок активации.
+
+Вы можете активировать до трёх дополнительных языков и изменять коды в любое время; ранее сохранённые переводы останутся в базе данных.
+
+### <a id="editing-translations"></a>Редактирование переводов
+
+Когда мультиязычная поддержка включена, форма редактирования товара (`market.edit.tpl`) автоматически показывает дополнительное текстовое поле **под каждым экстраполем типа `input` или `textarea`**. Эти поля помечены кодом языка (например, `(EN)`, `(UA)`) и позволяют ввести перевод.
+
+- Если исходное поле — обычный `<input>` (текст), поле перевода также является текстовым вводом.
+- Если исходное поле — `<textarea>`, поле перевода также становится `<textarea>`, чтобы можно было удобно вводить длинные тексты.
+
+**Важно:** групповой цикл `<!-- BEGIN: XTRA_EXTRAFLD -->` не подходит для отображения мультиязычных полей, так как он показывает только основные поля. Чтобы администраторы могли заполнять переводы, **необходимо использовать индивидуальные теги** для каждого поля и каждого языка. Например:
+
+```html
+<!-- IF {PHP|cot_plugin_active('xtradbrowmarket')} -->
+<div class="card mb-4">
+    <div class="card-body">
+        <!-- IF {MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION} -->
+        <div class="mb-3">
+            <label>{MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION_TITLE}:</label>
+            {MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION}
+        </div>
+        <!-- ENDIF -->
+        <!-- IF {MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION_EN} -->
+        <div class="mb-3">
+            <label>{MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION_EN_TITLE}:</label>
+            {MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION_EN}
+        </div>
+        <!-- ENDIF -->
+        <!-- IF {MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION_UA} -->
+        <div class="mb-3">
+            <label>{MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION_UA_TITLE}:</label>
+            {MARKETEDIT_FORM_XTRA_EVENT_DESCRIPTION_UA}
+        </div>
+        <!-- ENDIF -->
+    </div>
+</div>
+<!-- ENDIF -->
+```
+
+После сохранения товара исходное значение записывается в основную таблицу, а переводы — в `cot_xtradbrowmarket_i18n`.
+
+### <a id="display-on-site"></a>Отображение на сайте
+
+На публичной части (страница товара, список товаров, мета-теги заголовка) плагин автоматически подставляет перевод для активного языка. Те же теги, что вы использовали ранее, работают без изменений:
+
+```html
+<!-- IF {MARKET_XTRA_EVENT_DESCRIPTION} -->
+<p>{MARKET_XTRA_EVENT_DESCRIPTION}</p>
+<!-- ENDIF -->
+```
+
+Если посетитель просматривает сайт на английском и перевод для `event_description` существует, он увидит английский текст; в противном случае — исходный.
+
+Также реализован умный fallback: если исходное значение для языка по умолчанию пусто, но существует хотя бы один перевод, плагин покажет первый доступный перевод для посетителя, использующего язык по умолчанию. Это позволяет избежать пустых полей, когда контент был введён только на дополнительных языках.
+
+### <a id="deletion"></a>Удаление
+
+При удалении товара плагину больше не нужно вручную удалять записи экстраполей. Внешний ключ из `cot_xtradbrowmarket` к `cot_market` установлен с `ON DELETE CASCADE`, поэтому база данных автоматически удаляет как основную запись, так и все её переводы. Плагин отвечает только за удаление загруженных файлов (изображений, PDF) перед удалением, используя новый хук `market.delete.first`.
+
+### <a id="i18n-files"></a>Файлы, добавленные/изменённые для i18n
+
+- `inc/xtradbrowmarket.functions.php` — новые функции `xtradbrowmarket_i18n_load`, `_save`, `_get_value`.
+- `setup/xtradbrowmarket.install.sql` — создание таблицы `cot_xtradbrowmarket_i18n`.
+- `xtradbrowmarket.setup.php` — добавлен конфигурационный блок для кодов языков.
+- `xtradbrowmarket.market.edit.tags.php` — отображение полей перевода.
+- `xtradbrowmarket.market.edit.update.done.php` — сохранение переводов.
+- `xtradbrowmarket.market.tags.php`, `xtradbrowmarket.markettags.php`, `xtradbrowmarket.header.tags.php` — вывод с учётом языка.
+- `xtradbrowmarket.market.delete.first.php` — новый файл для предварительной очистки (заменяет `market.edit.delete.done.php`).
+- Языковые файлы (`lang/xtradbrowmarket.*.lang.php`) — содержат подсказки по конфигурации и переводы для демо-полей.
+
+Весь существующий функционал остаётся без изменений; мультиязычные возможности являются чисто аддитивными и могут быть проигнорированы установкой главного переключателя в «0».
+
+* * *
+
+## <a id="step-by-step"></a>Пошаговая установка и использование
+
+### <a id="step-1"></a>Шаг 1. Скачайте плагин
+
+Скачайте архив плагина из [репозитория](https://github.com/webitproff/xtradbrowmarket-cotonti).
+
+### <a id="step-2"></a>Шаг 2. Загрузите плагин на сервер
+
+Загрузите папку `xtradbrowmarket` в директорию `plugins` так, чтобы файл `xtradbrowmarket.setup.php` находился по пути:
+
+```markdown
+/plugins/xtradbrowmarket/xtradbrowmarket.setup.php
+```
+
+После установки, если не возникло ошибок, примечание будет содержать ссылку:
+
+```markdown
+After installing the plugin, open the Custom Extrafields Market plugin's extra fields.
+```
+
+Или перейдите по пути:
+
+```markdown
+Администрирование → Расширения → Экстраполя → Таблица cot_xtradbrowmarket - Custom Extrafields Market
+```
+
+Ссылка в браузере:
+
+```ini
+https://cotonti.local/admin/extrafields?n=cot_xtradbrowmarket
+```
+
+Это сердце вашего плагина — 15 предустановленных демонстрационных экстраполей дадут вам полное представление о том, какой тип экстраполя подходит для какого сценария и приложения.
+
+### <a id="step-3"></a>Шаг 3. Настройте шаблон редактирования товара
+
+Откройте шаблон редактирования товара — это `market.edit.tpl`. Его правильное расположение:
+
+```php
+/themes/index36/modules/market/market.edit.tpl
+```
+
+и перед радиокнопками «Да»/«Нет» для удаления товара вставьте следующий код:
+
+```php
+<!-- IF {PHP|cot_plugin_active('xtradbrowmarket')} -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h4>{PHP.L.xtradbrowmarket_edittpl_dynamic_title}</h4>
+    </div>
+    <div class="card-body">
+        <!-- BEGIN: XTRA_EXTRAFLD -->
+        <div class="form-group mb-3">
+            <label>{MARKETEDIT_FORM_XTRA_EXTRAFLD_TITLE}</label>
+            {MARKETEDIT_FORM_XTRA_EXTRAFLD}
+        </div>
+        <!-- END: XTRA_EXTRAFLD -->
+    </div>
+</div>
+<!-- ENDIF -->
+```
+
+Используйте клавишу Tab для правильного отступа, затем сохраните файл. После этого откройте любой товар для редактирования, например:
+
+```php
+https://cotonti.local/market/1165?m=edit
+```
+
+Как уже упоминалось, вы должны увидеть все поля перед кнопками удаления «Да»/«Нет» (а сразу после установки их 15). Теперь заполните все поля какими-либо случайными данными — не бойтесь доверять своей интуиции. Сохраните товар и сразу же вернитесь, чтобы проверить, что сохранилось в ваших полях. Если всё в порядке, переходите к редактированию шаблона страницы товара.
+
+### <a id="step-4"></a>Шаг 4. Настройте шаблон страницы товара (market.tpl)
+
+Откройте шаблон страницы товара (полная страница с подробностями) — это `market.tpl`. Его правильное расположение:
+
+```php
+/themes/index36/modules/market/market.tpl
+/themes/index36/modules/market/market.category-name.tpl
+```
+
+Найдите заголовок товара:
+
+```html
+<h1 class="h4 mb-3">
+    <!-- IF {PHP.item.fieldmrkt_product_status} == 'instock' -->
+    <span class="px-2 fw-bold bg-success text-white rounded-2">{MARKET_PRODUCT_STATUS}</span>
+    <!-- ENDIF -->
+    <!-- IF {PHP.item.fieldmrkt_product_status} == 'onorder' -->
+    <span class="fw-bold text-warning-hot">{MARKET_PRODUCT_STATUS}</span>
+    <!-- ENDIF -->
+    {MARKET_TITLE}
+</h1>
+```
+
+и сразу после него, или в любом другом месте по вашему усмотрению, вставьте следующий код:
+
+```html
+<!-- IF {PHP.usr.maingrp} == 5 -->
+<!-- IF {PHP|cot_plugin_active('xtradbrowmarket')} -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h4 class="mb-3">{PHP.L.xtradbrowmarket_pagetpl_custom_title}</h4>
+        <small class="mb-3">{PHP.L.xtradbrowmarket_pagetpl_custom_desc}</small>
+    </div>
+    <div class="card-body">
+        
+        <!-- event_name (input) -->
+        <!-- IF {MARKET_XTRA_EVENT_NAME} -->
+        <div class="mb-3">
+            <i class="fa-regular fa-calendar-check me-2 text-primary"></i>
+            <strong>{MARKET_XTRA_EVENT_NAME_TITLE}:</strong>
+            <span class="fw-semibold">{MARKET_XTRA_EVENT_NAME}</span>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- event_description (textarea) с обрезкой тегов и сокращением -->
+        <!-- IF {MARKET_XTRA_EVENT_DESCRIPTION} -->
+        <div class="mb-3 p-3 bg-light rounded">
+            <h6 class="fw-bold"><i class="fa-solid fa-align-left me-1"></i> {MARKET_XTRA_EVENT_DESCRIPTION_TITLE}</h6>
+            <p class="mb-0">
+                {MARKET_XTRA_EVENT_DESCRIPTION_VALUE|strip_tags($this)|mb_substr($this, 0, 150, 'UTF-8')}...
+            </p>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- event_start (datetime) – форматирование через cot_date -->
+        <!-- IF {MARKET_XTRA_EVENT_START} -->
+        <div class="mb-3">
+            <i class="fa-regular fa-clock me-2 text-warning"></i>
+            <strong>{MARKET_XTRA_EVENT_START_TITLE}:</strong>
+            <span class="badge bg-warning text-dark">
+                {MARKET_XTRA_EVENT_START_VALUE|cot_date('d.m.Y H:i', $this)}
+            </span>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- event_ticketprice (double) -->
+        <!-- IF {MARKET_XTRA_EVENT_TICKETPRICE} -->
+        <div class="mb-3">
+            <i class="fa-solid fa-dollar-sign me-2 text-success"></i>
+            <strong>{MARKET_XTRA_EVENT_TICKETPRICE_TITLE}:</strong>
+            <!-- IF {MARKET_XTRA_EVENT_TICKETPRICE_VALUE} == '0' -->
+            <span class="badge bg-success">Бесплатно</span>
+            <!-- ELSE -->
+            <span class="fs-3 fw-bold">
+                {MARKET_XTRA_EVENT_TICKETPRICE_VALUE} $
+            </span>
+            <!-- ENDIF -->
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- event_seson (select) – вложенные IF вместо ELSEIF -->
+        <!-- IF {MARKET_XTRA_EVENT_SESON} -->
+        <div class="mb-3">
+            <i class="fa-solid fa-cloud-sun me-2 text-success"></i>
+            <strong>{MARKET_XTRA_EVENT_SESON_TITLE}:</strong>
+            <!-- IF {MARKET_XTRA_EVENT_SESON_VALUE} == 'winter' -->
+            <span>❄️ Зима</span>
+            <!-- ELSE -->
+            <!-- IF {MARKET_XTRA_EVENT_SESON_VALUE} == 'spring' -->
+            <span>🌱 Весна</span>
+            <!-- ELSE -->
+            <!-- IF {MARKET_XTRA_EVENT_SESON_VALUE} == 'summer' -->
+            <span>☀️ Лето</span>
+            <!-- ELSE -->
+            <!-- IF {MARKET_XTRA_EVENT_SESON_VALUE} == 'autumn' -->
+            <span>🍂 Осень</span>
+            <!-- ELSE -->
+            <span class="text-capitalize">{MARKET_XTRA_EVENT_SESON}</span>
+            <!-- ENDIF -->
+            <!-- ENDIF -->
+            <!-- ENDIF -->
+            <!-- ENDIF -->
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_int (inputint) -->
+        <!-- IF {MARKET_XTRA_DEMO_INT} -->
+        <div class="mb-3">
+            <span class="fa-stack fa-sm me-2">
+                <i class="fa-solid fa-circle fa-stack-2x text-secondary"></i>
+                <i class="fa-solid fa-hashtag fa-stack-1x fa-inverse"></i>
+            </span>
+            <strong>{MARKET_XTRA_DEMO_INT_TITLE}:</strong>
+            <span class="badge bg-secondary">{MARKET_XTRA_DEMO_INT}</span>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_double (double) -->
+        <!-- IF {MARKET_XTRA_DEMO_DOUBLE} -->
+        <div class="mb-3">
+            <i class="fa-solid fa-dollar-sign me-2 text-success"></i>
+            <strong>{MARKET_XTRA_DEMO_DOUBLE_TITLE}:</strong>
+            <!-- IF {MARKET_XTRA_DEMO_DOUBLE_VALUE} == '0.00' -->
+            <span class="text-muted">не указано</span>
+            <!-- ELSE -->
+            {MARKET_XTRA_DEMO_DOUBLE_VALUE}
+            <!-- ENDIF -->
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_select (select) -->
+        <!-- IF {MARKET_XTRA_DEMO_SELECT} -->
+        <div class="mb-3">
+            <i class="fa-solid fa-list me-2 text-info"></i>
+            <strong>{MARKET_XTRA_DEMO_SELECT_TITLE}:</strong>
+            <span class="badge bg-info text-dark">{MARKET_XTRA_DEMO_SELECT}</span>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_radio (radio) – проверка значения внутри IF -->
+        <!-- IF {MARKET_XTRA_DEMO_RADIO} -->
+        <div class="mb-3">
+            <i class="fa-solid fa-circle-dot me-2 text-secondary"></i>
+            <strong>{MARKET_XTRA_DEMO_RADIO_TITLE}:</strong>
+            <!-- IF {MARKET_XTRA_DEMO_RADIO_VALUE} == 'Yes' -->
+            <span class="text-success fw-bold">Да</span>
+            <!-- ELSE -->
+            <span class="text-danger fw-bold">Нет</span>
+            <!-- ENDIF -->
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_datetime (datetime) -->
+        <!-- IF {MARKET_XTRA_DEMO_DATETIME} -->
+        <div class="mb-3">
+            <i class="fa-regular fa-calendar me-2 text-danger"></i>
+            <strong>{MARKET_XTRA_DEMO_DATETIME_TITLE}:</strong>
+            <span class="text-muted">
+                {MARKET_XTRA_DEMO_DATETIME_VALUE|cot_date('d.m.Y H:i', $this)}
+            </span>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_file (file)  -->
+        <!-- IF {MARKET_XTRA_DEMO_FILE} -->
+        <div class="mb-3">
+            <i class="fa-solid fa-paperclip me-2"></i>
+            <strong>{MARKET_XTRA_DEMO_FILE_TITLE}:</strong>
+            <a href="{PHP.cfg.mainurl}/datas/exflds/xtradbrowmarket/{MARKET_XTRA_DEMO_FILE}" target="_blank">
+                {MARKET_XTRA_DEMO_FILE}
+            </a>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_country (country) -->
+        <!-- IF {MARKET_XTRA_DEMO_COUNTRY} -->
+        <div class="mb-3">
+            <img src="images/flags/{MARKET_XTRA_DEMO_COUNTRY_VALUE}.svg"
+            style="width:24px;height:auto;" class="me-2" alt="">
+            <strong>{MARKET_XTRA_DEMO_COUNTRY_TITLE}:</strong>
+            <span>{MARKET_XTRA_DEMO_COUNTRY}</span>    <span>{MARKET_XTRA_DEMO_COUNTRY_NAME}</span>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_range (range) – прогресс-бар с реальным значением -->
+        <!-- IF {MARKET_XTRA_DEMO_RANGE} -->
+        <div class="mb-3">
+            <i class="fa-solid fa-sliders me-2" style="color:#6f42c1;"></i>
+            <strong>{MARKET_XTRA_DEMO_RANGE_TITLE}:</strong>
+            <div class="progress mt-1" style="height:20px;">
+                <div class="progress-bar bg-info" role="progressbar"
+                style="width:{MARKET_XTRA_DEMO_RANGE_VALUE}%;"
+                aria-valuenow="{MARKET_XTRA_DEMO_RANGE_VALUE}" aria-valuemin="0" aria-valuemax="100">
+                    {MARKET_XTRA_DEMO_RANGE_VALUE}%
+                </div>
+            </div>
+        </div>
+        <!-- ENDIF -->
+        
+        <!-- demo_checklistbox (checklistbox) -->
+        <!-- IF {MARKET_XTRA_DEMO_CHECKLISTBOX} -->
+        <div class="mb-3">
+            <i class="fa-solid fa-check-double me-2 text-primary"></i>
+            <strong>{MARKET_XTRA_DEMO_CHECKLISTBOX_TITLE}:</strong>
+            <span class="text-muted">{MARKET_XTRA_DEMO_CHECKLISTBOX}</span>
+        </div>
+        <!-- ENDIF -->
+        
+    </div>
+</div>
+<!-- ENDIF -->
+<!-- ENDIF -->
+```
+
+Обратите внимание: здесь я оборачиваю проверку активности плагина в условную «рамку»:
+
+```php
+<!-- IF {PHP.usr.maingrp} == 5 -->
+<!-- IF {PHP|cot_plugin_active('xtradbrowmarket')} -->
+<div class="card mb-4">
+    ... бла-бла-бла ....
+</div>
+<!-- ENDIF -->
+<!-- ENDIF -->
+```
+
+– это будет показано только суперадминистратору и только при активном плагине. Это удобно, пока вы доводите что-то до продакшена (живого сайта). После того как вы «настроили» этот лог для себя, можете спокойно убрать рамку: `<!-- IF {PHP.usr.maingrp} == 5 -->` – удалите эту строку, объявляющую условие (показывать админу), оставив весь внутренний код нетронутым. `<!-- ENDIF -->` – удалите эту строку, закрывающую условие (показывать админу).
+
+### <a id="step-5"></a>Шаг 5. Настройте шаблон списка товаров (market.list.tpl)
+
+Откройте шаблон списка товаров в категории, категориях или без них — это `market.list.tpl`. Его правильное расположение:
+
+```php
+/themes/index36/modules/market/market.list.tpl
+/themes/index36/modules/market/market.list.category-name.tpl
+```
+
+Прокрутите до блока цикла товаров:
+
+```php
+<div class="row row-cols-1 row-cols-xl-3 row-cols-lg-2 row-cols-md-1 g-3 g-lg-4" id="market-items-container">
+    <!-- BEGIN: LIST_ROW -->
+    <div class="col">
+     ...
+    </div>
+    <!-- END: LIST_ROW -->
+</div>
+```
+
+И, например, сразу после ссылки на страницу товара:
+
+```php
+<h5 class="card-title mb-2">
+    <a href="{LIST_ROW_URL}" class="text-decoration-none">{LIST_ROW_TITLE}</a>
+</h5>
+```
+
+добавьте следующий код:
+
+```php
+<!-- IF {PHP|cot_plugin_active('xtradbrowmarket')} -->
+
+<!-- просто как пример – страна происхождения -->
+<!-- IF {LIST_ROW_XTRA_DEMO_COUNTRY} -->
+<div class="mb-3">
+    <img src="images/flags/{LIST_ROW_XTRA_DEMO_COUNTRY_VALUE}.svg"
+         style="width:24px;height:auto;" class="me-2" alt="">
+    <strong>{LIST_ROW_XTRA_DEMO_COUNTRY_TITLE}:</strong>
+    <span>{LIST_ROW_XTRA_DEMO_COUNTRY}</span>    <span>{LIST_ROW_XTRA_DEMO_COUNTRY_NAME}</span>
+</div>
+<!-- ENDIF -->
+
+<!-- просто как пример – дата выхода на рынок -->
+<!-- IF {LIST_ROW_XTRA_EVENT_START} -->
+<div class="mb-3">
+    <strong>{LIST_ROW_XTRA_EVENT_START_TITLE}:</strong>
+    <span class="text-primary"><i class="fa-regular fa-alarm-clock fa-xl"></i></span>
+    <span class="ms-2 fw-bold text-danger">{LIST_ROW_XTRA_EVENT_START}</span>
+</div>
+<!-- ENDIF -->
+
+<!-- ENDIF -->
+```
+
+Сохраните файл, затем перейдите к списку товаров и посмотрите результат (смотрите скриншоты).
+
+## <a id="header-tpl"></a>Отображение пользовательских экстраполей в header.tpl
+
+Правильное расположение:
+
+```php
+/themes/index36/header.tpl
+```
+
+Цели такой реализации могут быть самыми разными; главное, что у нас есть гибкий и достаточно простой способ решать конкретные задачи — например, сообщать поисковым системам что-то индивидуальное о каждом товаре на нашем сайте.
+
+В идеале, конечно, хотелось бы иметь выделенный «заголовок сайта» для товаров — [кастомный шаблон](https://abuyfile.com/ru/cotonti/authorial-plugins/pagemycatheader) `header.market.tpl` или даже по одному для каждой нужной категории — `header.market.notebook.tpl`, `header.market.mobile-phones.tpl` и т.д. В Cotonti это действительно возможно:
+
+```php
+/themes/index36/header.tpl – общий заголовок
+/themes/index36/header.list.tpl – заголовок для списка статей
+/themes/index36/header.page.news.tpl – заголовок для полной статьи из категории «новости»
+/themes/index36/header.market.tpl – общий заголовок для модуля «market»
+/themes/index36/header.market.notebook.tpl – заголовок для карточки товара в категории «Ноутбуки»
+```
+
+### <a id="differentiation"></a>Лирическое отступление о дифференциации
+
+На операционном уровне я, безусловно, согласен — чем проще мы сделаем наш `header.market.notebook.tpl`, адаптированный под конкретную товарную категорию, тем лучше. Однако вам никогда не удастся создать простой, универсальный `header.tpl`, подходящий для всех задач. Кто-то уже пытался — я говорю о Генри Форде с его знаменитым массовым Model T. Этот автомобиль был простым, надёжным и бесспорно доминирующим, но лишь на короткое время и только в сегменте доступных машин. Model T предназначался только для масс, нечто очень количественное и строго стандартизированное. Но успешный бизнесмен, предприимчивый гангстер или влиятельный политик, помешанный на собственной важности, никогда не захотел бы ассоциировать себя — «могущественную, влиятельную» личность — с массами и чем-то стандартным, заурядным! Такому успешному человеку машина была нужна не просто как средство передвижения; ему требовался автомобиль, подчёркивающий его достижения, статус и успех. И здесь владение простым и дешёвым Model T фактически вредило его имиджу, снижая воспринимаемый успех владельца, либо просто не соответствовало уже стандартным техническим требованиям — проходимость, подвеска и т.д. Поэтому с появлением «Chevrolet Superior», «Cadillac Type 51», «Cadillac V‑63» многие стали продавать свои Model T и покупать «то, что действительно им соответствует». Именно так рухнуло доминирование Ford на автомобильном рынке.
+
+1926 год. Три модели, три цены:
+Ford Model T (Runabout): $260
+Chevrolet Superior Series V (Roadster): $510
+Cadillac V‑63 (Touring): $3085
+
+Ещё до появления концепции «Позиционирования» рынок уже кричал знаменитые слова Джека Траута, произнесённые в 1992 году — «Дифференцируйся или умирай». Нельзя взять простую, универсально обтекаемую модель управления, работающую для одного успешного города, и применить её к каждому городу или посёлку в регионе, не говоря уже о каждом городе в стране. Мы ведь не строим космодром, институт генетики, коровник и кондитерскую фабрику в каждом городе? Именно поэтому упрощение должно происходить на локальном, муниципальном уровне и в рамках общей стратегии.
+
+Ну вот, я увлёкся.
+Вернёмся к нашим упрямцам, у которых аллергия на всё разноцветное. Думаю, я достаточно ясно показал, почему один супер-пупер-простой `header.tpl` для всего сайта никогда не решит малые задачи, необходимые для достижения стратегических целей, и, конечно, очень надеюсь, что если вы владелец сайта, у вас точно есть такие цели, например:
+
+- через год переориентировать контент на конкретную аудиторию в физически осязаемой географии;
+- через полгода вычистить статьи в разделе «блог» от мусорной разметки, которую я по неопытности и глупости копировал с чужих сайтов;
+- параллельно с витриной товаров организовать и запустить в обязательном режиме форум поддержки для клиентов и пользователей, которые уже приобрели или могут приобрести товары в моём магазине в будущем, и т.д.
+
+Вот тут-то и становится необходимой одна из изюминок Cotonti — возможность дифференцировать `header.tpl` для разных «регионов» и «городов».
+
+Кстати, это ещё один пример того, что Cotonti — не какой-то OpenCart или WordPress, которые просты как Model T — поставил в гараж и забыл, лишь бы машина была )))). Но если вы активный разработчик и заказы сыплются один за другим, вы часто будете держать в уме: «\*\*\*б\*чая колымага» — её нужно тюнинговать или модернизировать, а тут ещё и капризы клиента — тут что-то подтолкнёшь, там что-то отвалится, а когда доходит до сметы — Клиент в откровенном ужасе — «но ведь это бесплатно, разве нет?»...
+
+### <a id="header-notebook-example"></a>Практический пример для header.market.notebook.tpl
+
+Давайте откроем:
+
+```php
+/themes/index36/header.market.notebook.tpl
+```
+
+вот он:
+
+```php
+<!--
+    /********************************************************************************
+    * File: header.tpl
+    * Extension: Core'
+    * Description: HTML template for header.tpl.
+    * Compatibility: CMF/CMS Cotonti Siena v0.9.26[](https://github.com/Cotonti/Cotonti)
+    * Dependencies:
+    *        Bootstrap 5.3.+[](https://getbootstrap.com/);
+    *        Font Awesome Free 7.1[](https://fontawesome.com/)
+    * Theme: Index36
+    * Version: 1.0.2
+    * Created: 01 Feb 2026
+    * Updated: 22 Apr 2026
+    * Copyright (c) 2026 webitproff | https://github.com/webitproff
+    * Source: https://github.com/webitproff/index36-cotonti-theme
+    * Demo : https://freelance-script.abuyfile.com/
+    * Help and support: https://abuyfile.com/ru/forums/cotonti/original/skins/index36
+    * License: BSD (Free distribution with saving Copyright (c) 2026 webitproff)
+    ********************************************************************************/
+-->
+<!-- BEGIN: HEADER -->
+<!DOCTYPE html>
+    <!-- IF {HTML_LANG} -->
+    <html lang="{HTML_LANG}" data-bs-theme="light">
+    <!-- ELSE -->
+    <html lang="{PHP.usr.lang}" data-bs-theme="light">
+    <!-- ENDIF -->
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- IF {I18N_HEADER_META_TITLE} -->
+        <title>{I18N_HEADER_META_TITLE}</title>
+        <!-- ELSE -->
+        <title>{HEADER_TITLE}</title>
+        <!-- ENDIF -->
+    <!-- IF {I18N_HEADER_META_DESCRIPTION} -->
+        <meta name="description" content="{I18N_HEADER_META_DESCRIPTION}" />
+    <!-- ELSE -->
+        <!-- IF {HEADER_META_DESCRIPTION} -->
+        <meta name="description" content="{HEADER_META_DESCRIPTION}" />
+        <!-- ENDIF -->
+    <!-- ENDIF -->
+        <!-- IF {HEADER_BASEHREF} -->
+        {HEADER_BASEHREF}
+        <!-- ENDIF -->
+        <!-- IF {HEADER_CANONICAL_URL} -->
+        <link rel="canonical" href="{HEADER_CANONICAL_URL}" />
+        <!-- ENDIF -->
+        <!-- IF {ALTERNATE_TAGS} -->
+        {ALTERNATE_TAGS}
+        <!-- ENDIF -->
+        <link rel="shortcut icon" href="favicon.ico" />
+        <link rel="icon" href="{PHP.cfg.themes_dir}/{PHP.theme}/img/icon.webp" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+        <!-- IF {PHP.out.meta} -->
+        {PHP.out.meta}
+        <!-- ENDIF -->
+        <script>
+            (function () {
+                const storedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const defaultTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-bs-theme', defaultTheme);
+            })();
+        </script>
+        {HEADER_HEAD}
+    </head>
+    <body class="sidebar-closed">
+        <header class="navbar navbar-expand-lg shadow-sm fixed-top" style="background-color: var(--bs-header-bg);" data-bs-theme="inherit">
+               ....
+                <div class="d-flex align-items-center gap-3 ms-auto">
+                    <!-- BEGIN: I18N_LANG -->
+                    <div class="btn-group">
+                        <button type="button" class="dropdown-toggle btn nav-link d-flex align-items-center" data-bs-toggle="dropdown">
+                            <i class="fa-solid fa-language me-2"></i>
+                            <!-- IF {PHP.i18n_locale} == 'ru' -->RU<!-- ENDIF -->
+                            <!-- IF {PHP.i18n_locale} == 'cn' -->CN<!-- ENDIF -->
+                            <!-- IF {PHP.i18n_locale} == 'en' -->EN<!-- ENDIF -->
+                            <!-- IF {PHP.i18n_locale} == 'ua' -->UA<!-- ENDIF -->
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <!-- BEGIN: I18N_LANG_ROW -->
+                            <li><a class="dropdown-item" href="{I18N_LANG_ROW_URL}">{I18N_LANG_ROW_TITLE}</a></li>
+                            <!-- END: I18N_LANG_ROW -->
+                        </ul>
+                    </div>
+                    <!-- END: I18N_LANG -->
+
+            ...
+        </header>
+
+        <aside class="main-sidebar">
+            ...
+        </aside>
+
+        <div class="expanded-panels ps-container">
+        ...
+        </div>
+        <main>
+<!-- END: HEADER -->
+```
+
+Я показываю рабочий пример вывода полей, а не смысловую нагрузку, которую они несут в примерах, так что вы можете комбинировать их как угодно. Найдите:
+
+```php
+<title>{HEADER_TITLE}</title>
+```
+
+замените на:
+
+```html
+<title>{HEADER_TITLE} <!-- IF {MARKET_HEADER_XTRA_DEMO_COUNTRY} -->. {MARKET_HEADER_XTRA_DEMO_COUNTRY_NAME}<!-- ENDIF --></title>
+```
+
+Вместо:
+
+```html
+<title>Супер крутой товар</title>
+```
+
+браузер покажет:
+
+```html
+<title>Супер крутой товар. Китай</title>
+```
+
+затем найдите:
+
+```php
+<!-- IF {HEADER_META_DESCRIPTION} --><meta name="description" content="{HEADER_META_DESCRIPTION}<!-- ENDIF -->" />
+<!-- ENDIF -->
+```
+
+замените на:
+
+```php
+<!-- IF {HEADER_META_DESCRIPTION} --><meta name="description" content="{HEADER_META_DESCRIPTION}<!-- IF {MARKET_HEADER_XTRA_EVENT_START} -->  • {MARKET_HEADER_XTRA_EVENT_START_TITLE} {MARKET_HEADER_XTRA_EVENT_START}<!-- ENDIF -->" />
+<!-- ENDIF -->
+```
+
+и теперь вместо:
+
+```html
+<meta name="description" content="Купите товар с крутейшим AI-сгенерированным описанием" />
+```
+
+получим:
+
+```html
+<meta name="description" content="Купите товар с крутейшим AI-сгенерированным описанием • Акционная распродажа только у нас с 27.05.2026 10:10" />
+```
+
+Extrafields Market Custom i18n — это не просто маленький набор инструментов, а точный хаб, позволяющий разместить именно то, что нужно, и именно там, где нужно — интегрируя метаданные или любой контент в систему через по-настоящему простой вывод экстраполей — это лишь верхушка айсберга. Но когда вы начинаете использовать этот плагин для построения «модульных описаний товаров» — да ещё и сразу с языковыми переводами — это по-настоящему поражает. Во-первых, это интересно, а во-вторых, поисковые системы реагируют на это, как кошка на валерьянку, при правильном SEO-подходе.
+
+[**ReadMeMore**](https://abuyfile.com/ru/market/cotonti/plugs/extrafields-market-custom)
+
+[**Support**](https://abuyfile.com/ru/forums/cotonti/original/extrafields)
+
+[**API Extrafields**](https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php)
+```
+
+
