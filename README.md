@@ -1,9 +1,9 @@
+
 ## Table of Contents
 
 1. [Basic Plugin Information](#plugin-info)
 2. [Plugin Structure (Hooks)](#plugin-structure)
 3. [Multilingual Support for Extra Fields (from version 3.0.0)](#multilingual)
-   
    1. [How It Works](#how-it-works)
    2. [Configuration](#configuration)
    3. [Editing Translations](#editing-translations)
@@ -11,16 +11,13 @@
    5. [Deletion](#deletion)
    6. [Files Added/Modified for i18n](#i18n-files)
 4. [Step-by-Step Installation and Usage](#step-by-step)
-   
    1. [Step 1. Download the Plugin](#step-1)
    2. [Step 2. Upload the Plugin to the Server](#step-2)
    3. [Step 3. Configure the Product Editing Template](#step-3)
    4. [Step 4. Configure the Product Page Template (market.tpl)](#step-4)
    5. [Step 5. Configure the Product List Template (market.list.tpl)](#step-5)
 5. [Displaying Custom Extra Fields in header.tpl](#header-tpl)
-   
-   1. [A Lyrical Digression on Differentiation](#differentiation)
-   2. [Practical Example for header.market.notebook.tpl](#header-notebook-example)
+   1. [Practical Example for header.market.notebook.tpl](#header-notebook-example)
 
 * * *
 
@@ -28,7 +25,7 @@
 
 ![Version](https://img.shields.io/badge/version-3.0.0-green.svg) ![Cotonti Compatibility](https://img.shields.io/badge/Cotonti-0.9.26-orange.svg) ![PHP](https://img.shields.io/badge/PHP-8.4-purple.svg) ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg) ![Bootstrap v5.3.8](https://img.shields.io/badge/Bootstrap-v5.3.8-blueviolet.svg) ![License](https://img.shields.io/badge/license-BSD-blue.svg)
 
-## Basic Plugin Information
+## Basic Plugin Information {#plugin-info}
 
 - **Code:** xtradbrowmarket
 - **Purpose:** adds custom fields for the [**Market PRO v.5**](https://abuyfile.com/ru/market/cotonti/plugs/marketpro) module to its own database table. Starting from version 3.0.0, built-in multilingual support for text fields is included.
@@ -43,10 +40,9 @@
 
 <img width="1555" height="1012" alt="xtradbrowmarket-cotonti-by-webitproff-2026" src="https://github.com/user-attachments/assets/15edacc8-d583-4b2d-b324-4713fa222fcb" />
 
-
 ### [Permanent Link to the Plugin Source Code on GitHub](https://github.com/webitproff/xtradbrowmarket-cotonti)
 
-## Plugin Structure (Hooks)
+## Plugin Structure (Hooks) {#plugin-structure}
 
 | \# | Part                    | File                                        | Hook                                  |
 |----|-------------------------|---------------------------------------------|---------------------------------------|
@@ -60,13 +56,13 @@
 
 *The old hook `market.edit.delete.done` is no longer used.*
 
-## Multilingual Support for Extra Fields (from version 3.0.0)
+## Multilingual Support for Extra Fields (from version 3.0.0) {#multilingual}
 
 Starting from version 3.0.0, the plugin allows you to **translate the values of text extra fields** into several languages. This works for all fields of type `input` and `textarea`. You can, for example, write a product description in the default language, then provide translations into English, Ukrainian, or any other configured language — without modifying the Cotonti core and without installing additional internationalization modules.
 
 Translations are stored in a separate database table, so the original value remains untouched. The plugin automatically selects the correct translation based on the language chosen by the visitor.
 
-### How It Works
+### How It Works {#how-it-works}
 
 - The main (original) field value is stored in the `cot_xtradbrowmarket` table, as before.
 - For each activated additional language, a separate record is created in the new `cot_xtradbrowmarket_i18n` table. This record contains the product ID, field name, language code, and translated text.
@@ -75,7 +71,7 @@ Translations are stored in a separate database table, so the original value rema
 
 All this happens automatically — just enable multilingual support and specify the desired language codes in the plugin configuration.
 
-### Configuration
+### Configuration {#configuration}
 
 The plugin adds a set of options to the standard Cotonti configuration page (`Extensions → Configuration`):
 
@@ -87,7 +83,7 @@ The plugin adds a set of options to the standard Cotonti configuration page (`Ex
 
 You can activate up to three additional languages and change the codes at any time; previously saved translations will remain in the database.
 
-### Editing Translations
+### Editing Translations {#editing-translations}
 
 When multilingual support is enabled, the product editing form (`market.edit.tpl`) automatically shows an additional text field **under each extra field of type `input` or `textarea`** . These fields are labeled with the language code (e.g., `(EN)`, `(UA)`) and allow you to enter a translation.
 
@@ -125,7 +121,7 @@ When multilingual support is enabled, the product editing form (`market.edit.tpl
 
 After saving the product, the original value is written to the main table, and the translations go into `cot_xtradbrowmarket_i18n`.
 
-### Display on the Site
+### Display on the Site {#display-on-site}
 
 On the public side (product page, product list, header meta tags), the plugin automatically substitutes the translation for the active language. The same tags you used before work without changes:
 
@@ -139,11 +135,11 @@ If a visitor browses the site in English and a translation for `event_descriptio
 
 A smart fallback is also implemented: if the original value for the default language is empty, but at least one translation exists, the plugin will show the first available translation for a visitor using the default language. This avoids empty fields when content was entered only in additional languages.
 
-### Deletion
+### Deletion {#deletion}
 
 When deleting a product, the plugin no longer needs to manually delete extra field records. The foreign key from `cot_xtradbrowmarket` to `cot_market` is set to `ON DELETE CASCADE`, so the database automatically removes both the main record and all its translations. The plugin is only responsible for deleting uploaded files (images, PDFs) before deletion, using the new `market.delete.first` hook.
 
-### Files Added/Modified for i18n
+### Files Added/Modified for i18n {#i18n-files}
 
 - `inc/xtradbrowmarket.functions.php` — new functions `xtradbrowmarket_i18n_load`, `_save`, `_get_value`.
 - `setup/xtradbrowmarket.install.sql` — creation of the `cot_xtradbrowmarket_i18n` table.
@@ -158,13 +154,13 @@ All existing functionality remains unchanged; multilingual capabilities are pure
 
 * * *
 
-## Step-by-Step Installation and Usage
+## Step-by-Step Installation and Usage {#step-by-step}
 
-### Step 1. Download the Plugin
+### Step 1. Download the Plugin {#step-1}
 
 Download the plugin archive from the [repository](https://github.com/webitproff/xtradbrowmarket-cotonti).
 
-### Step 2. Upload the Plugin to the Server
+### Step 2. Upload the Plugin to the Server {#step-2}
 
 Upload the `xtradbrowmarket` folder to the `plugins` directory so that the file `xtradbrowmarket.setup.php` is located at:
 
@@ -192,7 +188,7 @@ https://cotonti.local/admin/extrafields?n=cot_xtradbrowmarket
 
 This is the heart of your plugin — 15 pre-installed demo extra fields will give you a complete picture of which extra field type suits which scenario and application.
 
-### Step 3. Configure the Product Editing Template
+### Step 3. Configure the Product Editing Template {#step-3}
 
 Open the product editing template — this is `market.edit.tpl`. Its correct "location":
 
@@ -228,7 +224,7 @@ https://cotonti.local/market/1165?m=edit
 
 As mentioned, you should see all the fields before the "Yes"/"No" delete buttons (and right after installation there are 15 of them). Now fill all fields with some random data — don't be afraid to trust your intuition. Save the product and immediately go back to check what was saved in your fields. If everything is fine, proceed to editing the product page template.
 
-### Step 4. Configure the Product Page Template (market.tpl)
+### Step 4. Configure the Product Page Template (market.tpl) {#step-4}
 
 Open the product page template (full page with details) — this is `market.tpl`. Its correct "location":
 
@@ -456,7 +452,7 @@ Note that here I wrap the plugin activity check in a conditional "frame":
 
 – this will be shown only to the super administrator and only if the plugin is active. This is convenient while you are bringing something to production (live site). After you have "configured" this log for yourself, you can safely remove the frame: `<!-- IF {PHP.usr.maingrp} == 5 -->` – delete this line, which declares the condition (show to admin), leaving all the inner code untouched. `<!-- ENDIF -->` – delete this line, which closes the condition (show to admin).
 
-### Step 5. Configure the Product List Template (market.list.tpl)
+### Step 5. Configure the Product List Template (market.list.tpl) {#step-5}
 
 Open the product list template in a category, categories, or without them — this is `market.list.tpl`. Its correct "location":
 
@@ -514,7 +510,7 @@ add the following code:
 
 Save the file, then go to the product list and see the result (see screenshots).
 
-## Displaying Custom Extra Fields in header.tpl
+## Displaying Custom Extra Fields in header.tpl {#header-tpl}
 
 Its correct "location":
 
@@ -534,7 +530,29 @@ Ideally, of course, one would like to have a dedicated "site header" for product
 /themes/index36/header.market.notebook.tpl – header for a product page in the "Notebooks" category
 ```
 
-### Practical Example for header.market.notebook.tpl
+### A Lyrical Digression on Differentiation {#differentiation}
+
+At the operational level, I certainly agree — the simpler we make our `header.market.notebook.tpl`, adapted to a specific product category, the better. However, you will never be able to create a simple, universal `header.tpl` suitable for all tasks. Someone has already tried — I'm talking about Henry Ford with his famous mass-produced Model T. This car was simple, reliable, and undeniably dominant, but only for a short time and only in the affordable car segment. The Model T was intended only for the masses, something very quantitative and strictly standardized. But a successful businessman, an enterprising gangster, or an influential politician obsessed with self-importance would never want to associate themselves — a "powerful, influential" person — with the masses and something standard, ordinary! Such a successful person needed a car not just as a means of transportation; they needed a vehicle that emphasized their achievements, status, and success. And here, owning a simple and cheap Model T actually harmed their image, reducing the owner's perceived success, or simply no longer met standard technical requirements — off-road capability, suspension, etc. That's why, with the advent of the "Chevrolet Superior", "Cadillac Type 51", "Cadillac V‑63", many began to sell their Model T and buy "what truly suits them." That is precisely how Ford's dominance in the automotive market collapsed.
+
+The year 1926. Three models, three prices:
+Ford Model T (Runabout): $260
+Chevrolet Superior Series V (Roadster): $510
+Cadillac V‑63 (Touring): $3085
+
+Even before the concept of "Positioning" emerged, the market was already shouting the famous words of Jack Trout, spoken in 1992 — "Differentiate or die." You cannot take a simple, universally streamlined management model that works for one successful city and apply it to every city or town in the region, let alone every city in the country. We're not building a spaceport, a genetics institute, a cowshed, and a confectionery factory in every city, are we? That is exactly why simplification must happen at the local, municipal level and within an overall strategy.
+
+Well, I got carried away.
+Let's get back to those stubborn folks who are allergic to anything colorful. I think I've shown clearly enough why one super-duper-simple `header.tpl` for the entire site will never solve the small tasks necessary to achieve strategic goals, and of course, I very much hope that if you are a site owner, you definitely have such goals, for example:
+
+- in a year, refocus content on a specific audience in a physically tangible geography;
+- in six months, clean up articles in the "blog" section from the garbage markup that I, due to inexperience and stupidity, copied from other sites;
+- in parallel with the storefront, organize and launch a mandatory support forum for customers and users who have already purchased or may purchase products in my store in the future, etc.
+
+That's when one of Cotonti's highlights becomes necessary — the ability to differentiate `header.tpl` for different "regions" and "cities."
+
+By the way, this is yet another example that Cotonti is not some OpenCart or WordPress, which are simple as a Model T — put it in the garage and forget it, as long as the car is there )))). But if you're an active developer and orders pour in one after another, you'll often keep in mind: "\*\*\*b\*cy jalopy" — it needs tuning or upgrading, and then there are the client's whims — push something here, something falls off there, and when it comes to the estimate — the Client is in outright horror — "but it's free, isn't it?"...
+
+### Practical Example for header.market.notebook.tpl {#header-notebook-example}
 
 Let's open:
 
@@ -704,3 +722,4 @@ Extrafields Market Custom i18n is not just a small toolkit, but a precise hub th
 [**Support**](https://abuyfile.com/ru/forums/cotonti/original/extrafields)
 
 [**API Extrafields**](https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php)
+
