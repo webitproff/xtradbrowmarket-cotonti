@@ -727,9 +727,7 @@ ___
 > RU 
 ___
 
-Вот полный перевод документа на русский язык с сохранением всей Markdown-разметки.
 
-```markdown
 ## Содержание
 
 1. [Основная информация о плагине](#plugin-info)
@@ -1453,6 +1451,6 @@ Extrafields Market Custom i18n — это не просто маленький �
 [**Support**](https://abuyfile.com/ru/forums/cotonti/original/extrafields)
 
 [**API Extrafields**](https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php)
-```
+
 
 
