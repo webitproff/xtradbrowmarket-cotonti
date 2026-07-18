@@ -530,28 +530,6 @@ Ideally, of course, one would like to have a dedicated "site header" for product
 /themes/index36/header.market.notebook.tpl – header for a product page in the "Notebooks" category
 ```
 
-### <a id="differentiation"></a>A Lyrical Digression on Differentiation
-
-At the operational level, I certainly agree — the simpler we make our `header.market.notebook.tpl`, adapted to a specific product category, the better. However, you will never be able to create a simple, universal `header.tpl` suitable for all tasks. Someone has already tried — I'm talking about Henry Ford with his famous mass-produced Model T. This car was simple, reliable, and undeniably dominant, but only for a short time and only in the affordable car segment. The Model T was intended only for the masses, something very quantitative and strictly standardized. But a successful businessman, an enterprising gangster, or an influential politician obsessed with self-importance would never want to associate themselves — a "powerful, influential" person — with the masses and something standard, ordinary! Such a successful person needed a car not just as a means of transportation; they needed a vehicle that emphasized their achievements, status, and success. And here, owning a simple and cheap Model T actually harmed their image, reducing the owner's perceived success, or simply no longer met standard technical requirements — off-road capability, suspension, etc. That's why, with the advent of the "Chevrolet Superior", "Cadillac Type 51", "Cadillac V‑63", many began to sell their Model T and buy "what truly suits them." That is precisely how Ford's dominance in the automotive market collapsed.
-
-The year 1926. Three models, three prices:
-Ford Model T (Runabout): $260
-Chevrolet Superior Series V (Roadster): $510
-Cadillac V‑63 (Touring): $3085
-
-Even before the concept of "Positioning" emerged, the market was already shouting the famous words of Jack Trout, spoken in 1992 — "Differentiate or die." You cannot take a simple, universally streamlined management model that works for one successful city and apply it to every city or town in the region, let alone every city in the country. We're not building a spaceport, a genetics institute, a cowshed, and a confectionery factory in every city, are we? That is exactly why simplification must happen at the local, municipal level and within an overall strategy.
-
-Well, I got carried away.
-Let's get back to those stubborn folks who are allergic to anything colorful. I think I've shown clearly enough why one super-duper-simple `header.tpl` for the entire site will never solve the small tasks necessary to achieve strategic goals, and of course, I very much hope that if you are a site owner, you definitely have such goals, for example:
-
-- in a year, refocus content on a specific audience in a physically tangible geography;
-- in six months, clean up articles in the "blog" section from the garbage markup that I, due to inexperience and stupidity, copied from other sites;
-- in parallel with the storefront, organize and launch a mandatory support forum for customers and users who have already purchased or may purchase products in my store in the future, etc.
-
-That's when one of Cotonti's highlights becomes necessary — the ability to differentiate `header.tpl` for different "regions" and "cities."
-
-By the way, this is yet another example that Cotonti is not some OpenCart or WordPress, which are simple as a Model T — put it in the garage and forget it, as long as the car is there )))). But if you're an active developer and orders pour in one after another, you'll often keep in mind: "\*\*\*b\*cy jalopy" — it needs tuning or upgrading, and then there are the client's whims — push something here, something falls off there, and when it comes to the estimate — the Client is in outright horror — "but it's free, isn't it?"...
-
 ### <a id="header-notebook-example"></a>Practical Example for header.market.notebook.tpl
 
 Let's open:
@@ -1259,27 +1237,7 @@ https://cotonti.local/market/1165?m=edit
 /themes/index36/header.market.notebook.tpl – заголовок для карточки товара в категории «Ноутбуки»
 ```
 
-### <a id="ru-differentiation"></a>Лирическое отступление о дифференциации
 
-На операционном уровне я, безусловно, согласен — чем проще мы сделаем наш `header.market.notebook.tpl`, адаптированный под конкретную товарную категорию, тем лучше. Однако вам никогда не удастся создать простой, универсальный `header.tpl`, подходящий для всех задач. Кто-то уже пытался — я говорю о Генри Форде с его знаменитым массовым Model T. Этот автомобиль был простым, надёжным и бесспорно доминирующим, но лишь на короткое время и только в сегменте доступных машин. Model T предназначался только для масс, нечто очень количественное и строго стандартизированное. Но успешный бизнесмен, предприимчивый гангстер или влиятельный политик, помешанный на собственной важности, никогда не захотел бы ассоциировать себя — «могущественную, влиятельную» личность — с массами и чем-то стандартным, заурядным! Такому успешному человеку машина была нужна не просто как средство передвижения; ему требовался автомобиль, подчёркивающий его достижения, статус и успех. И здесь владение простым и дешёвым Model T фактически вредило его имиджу, снижая воспринимаемый успех владельца, либо просто не соответствовало уже стандартным техническим требованиям — проходимость, подвеска и т.д. Поэтому с появлением «Chevrolet Superior», «Cadillac Type 51», «Cadillac V‑63» многие стали продавать свои Model T и покупать «то, что действительно им соответствует». Именно так рухнуло доминирование Ford на автомобильном рынке.
-
-1926 год. Три модели, три цены:
-Ford Model T (Runabout): $260
-Chevrolet Superior Series V (Roadster): $510
-Cadillac V‑63 (Touring): $3085
-
-Ещё до появления концепции «Позиционирования» рынок уже кричал знаменитые слова Джека Траута, произнесённые в 1992 году — «Дифференцируйся или умирай». Нельзя взять простую, универсально обтекаемую модель управления, работающую для одного успешного города, и применить её к каждому городу или посёлку в регионе, не говоря уже о каждом городе в стране. Мы ведь не строим космодром, институт генетики, коровник и кондитерскую фабрику в каждом городе? Именно поэтому упрощение должно происходить на локальном, муниципальном уровне и в рамках общей стратегии.
-
-Ну вот, я увлёкся.
-Вернёмся к нашим упрямцам, у которых аллергия на всё разноцветное. Думаю, я достаточно ясно показал, почему один супер-пупер-простой `header.tpl` для всего сайта никогда не решит малые задачи, необходимые для достижения стратегических целей, и, конечно, очень надеюсь, что если вы владелец сайта, у вас точно есть такие цели, например:
-
-- через год переориентировать контент на конкретную аудиторию в физически осязаемой географии;
-- через полгода вычистить статьи в разделе «блог» от мусорной разметки, которую я по неопытности и глупости копировал с чужих сайтов;
-- параллельно с витриной товаров организовать и запустить в обязательном режиме форум поддержки для клиентов и пользователей, которые уже приобрели или могут приобрести товары в моём магазине в будущем, и т.д.
-
-Вот тут-то и становится необходимой одна из изюминок Cotonti — возможность дифференцировать `header.tpl` для разных «регионов» и «городов».
-
-Кстати, это ещё один пример того, что Cotonti — не какой-то OpenCart или WordPress, которые просты как Model T — поставил в гараж и забыл, лишь бы машина была )))). Но если вы активный разработчик и заказы сыплются один за другим, вы часто будете держать в уме: «\*\*\*б\*чая колымага» — её нужно тюнинговать или модернизировать, а тут ещё и капризы клиента — тут что-то подтолкнёшь, там что-то отвалится, а когда доходит до сметы — Клиент в откровенном ужасе — «но ведь это бесплатно, разве нет?»...
 
 ### <a id="ru-header-notebook-example"></a>Практический пример для header.market.notebook.tpl
 
