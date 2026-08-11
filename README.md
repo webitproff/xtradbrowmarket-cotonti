@@ -23,14 +23,14 @@
 
 # Extrafields Market Custom — an Extension for Market PRO
 
-![Version](https://img.shields.io/badge/version-3.0.0-green.svg) ![Cotonti Compatibility](https://img.shields.io/badge/Cotonti-0.9.26-orange.svg) ![PHP](https://img.shields.io/badge/PHP-8.4-purple.svg) ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg) ![Bootstrap v5.3.8](https://img.shields.io/badge/Bootstrap-v5.3.8-blueviolet.svg) ![License](https://img.shields.io/badge/license-BSD-blue.svg)
+![Version](https://img.shields.io/badge/version-4.0.0-green.svg) ![Cotonti Compatibility](https://img.shields.io/badge/Cotonti-1-orange.svg) ![PHP](https://img.shields.io/badge/PHP-8.5-purple.svg) ![MySQL](https://img.shields.io/badge/MySQL-8.4-blue.svg) ![Bootstrap v5.3.8](https://img.shields.io/badge/Bootstrap-v5.3.8-blueviolet.svg) ![License](https://img.shields.io/badge/license-BSD-blue.svg)
 
 ## <a id="plugin-info"></a>Basic Plugin Information
 
 - **Code:** xtradbrowmarket
 - **Purpose:** adds custom fields for the [**Market PRO v.5**](https://abuyfile.com/ru/market/cotonti/plugs/marketpro) module to its own database table. Starting from version 3.0.0, built-in multilingual support for text fields is included.
-- **Version:** 3.0.0
-- **Date:** July 18, 2026
+- **Version:** 4.0.0
+- **Date:** Aug 11, 2026
 - **Author:** webitproff
 - **Copyright:** © 2026 webitproff
 - **Notes:** Beginners are advised to study the [forum section on the ExtraFields API](https://abuyfile.com/ru/forums/cotonti/original/extrafields). [(code in this file)](https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php). After installing the plugin, immediately open the management of its extra fields.
