@@ -40,6 +40,12 @@
 
 <img width="1555" height="1012" alt="xtradbrowmarket-cotonti-by-webitproff-2026" src="https://github.com/user-attachments/assets/15edacc8-d583-4b2d-b324-4713fa222fcb" />
 
+
+<img width="1920" height="1080" alt="Extrafields Market Custom i18n for Cotonti by webitproff" src="https://github.com/user-attachments/assets/8bfb91d8-9750-4600-afdc-59c58ef2c34b" />
+
+<img width="1920" height="1080" alt="Extrafields Market Custom i18n for Cotonti by webitproff 2" src="https://github.com/user-attachments/assets/6ccfa380-0189-4c7e-9969-1453c57bfc9a" />
+
+
 ### [Permanent Link to the Plugin Source Code on GitHub](https://github.com/webitproff/xtradbrowmarket-cotonti)
 
 ## <a id="plugin-structure"></a>Plugin Structure (Hooks)
