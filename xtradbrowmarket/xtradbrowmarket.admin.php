@@ -10,15 +10,15 @@ Hooks=tools
  *
  * Filename: plugins/xtradbrowmarket/xtradbrowmarket.admin.php
  *
- * Custom Extrafields Market i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
+ * Extrafields Market Custom i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
  *
  * ReadMeMore:       https://abuyfile.com/ru/market/cotonti/plugs/extrafields-market-custom 
  * Support:          https://abuyfile.com/ru/forums/cotonti/original/extrafields
  * API Extrafields:  https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
  *
- * Date: Aug 11Th, 2026
+ * Date: Aug 20Th, 2026
  * @package xtradbrowmarket
- * @version 4.0.0
+ * @version 4.1.1
  * @author webitproff
  * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
  * @license BSD
@@ -59,6 +59,12 @@ if ($tab === 'stats') {
     )->fetchColumn();
 
     $extrafields = xtradbrowmarket_getExtrafields();
+	
+	// сортировка теперь внутри xtradbrowmarket_getExtrafields()
+	// usort($extrafields, function($a, $b) {
+	// 	return strcmp($a['field_name'], $b['field_name']);
+	// });	
+	
     $filledCount = 0;
     if (!empty($extrafields)) {
         $nonEmpty = [];
@@ -83,7 +89,7 @@ if ($tab === 'stats') {
     if (!empty($extrafields)) {
         foreach ($extrafields as $exfld) {
             $t->assign([
-                'FIELD_NAME'        => htmlspecialchars($exfld['field_name']),
+                'FIELD_NAME'        => htmlspecialchars(mb_strtoupper($exfld['field_name'])),
                 'FIELD_TYPE'        => htmlspecialchars($exfld['field_type']),
                 'FIELD_DESCRIPTION' => htmlspecialchars($exfld['field_description'] ?? ''),
                 'FIELD_VARIANTS'    => htmlspecialchars($exfld['field_variants'] ?? ''),
@@ -98,7 +104,6 @@ if ($tab === 'stats') {
         $t->parse('MAIN.STATS_NO_EXTRAFIELDS');
     }
 }
-
 /* ========== ВКЛАДКА РЕДАКТИРОВАНИЕ (основные данные) ========== */
 if ($tab === 'edit') {
     list($pg, $d, $durl) = cot_import_pagenav('d', $perPage);
@@ -138,33 +143,186 @@ if ($tab === 'edit') {
     // Читаем настройку: показывать все товары или только с заполненными полями
     $showAllItems = !empty(Cot::$cfg['plugin']['xtradbrowmarket']['xtradbrowmarket_showallitems']);
 
+    // ========================
     // Сохранение изменений
+    // ========================
     if ($a === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $ids = isset($_POST['ids']) ? array_map('intval', $_POST['ids']) : [];
         $updatedCount = 0;
+
         foreach ($ids as $id) {
-            $data = [];
             $oldData = xtradbrowmarket_load($id);
-            if (!$oldData) {
+            $isNewRecord = empty($oldData);
+            if ($isNewRecord) {
                 $oldData = [];
             }
+
+            $data = [];
+            $changed = false;
             $extrafields = xtradbrowmarket_getExtrafields();
+
             foreach ($extrafields as $exfld) {
                 $fname = $exfld['field_name'];
                 $postKey = 'rxtra_' . $fname;
-                if (isset($_POST[$postKey][$id])) {
-                    $newValue = $_POST[$postKey][$id];
-                    $oldValue = $oldData[$fname] ?? '';
+
+                // Определяем старое значение
+				if ($isNewRecord) {
+					switch ($exfld['field_type']) {
+						case 'checkbox':
+							$oldValue = 0;
+							break;
+						case 'datetime':
+							$oldValue = 0;
+							break;
+						case 'select':
+							// Для select форма автоматически подставляет дефолт при пустом значении
+							$oldValue = $exfld['field_default'] ?? '';
+							break;
+						default:
+							$oldValue = '';
+							break;
+					}
+				} else {
+					$oldValue = $oldData[$fname] ?? '';
+				}
+				
+				// ============ ОСОБАЯ ОБРАБОТКА ДЛЯ ПОЛЯ ТИПА FILE ============
+				if ($exfld['field_type'] == 'file') {
+					$deleteRequested = isset($_POST['rdel_' . $postKey][$id]) && $_POST['rdel_' . $postKey][$id] == 1;
+					$hasNewFile = isset($_FILES[$postKey]['name'][$id]) && $_FILES[$postKey]['error'][$id] !== UPLOAD_ERR_NO_FILE;
+
+					// Если нужно удалить старый файл
+					if ($deleteRequested && !empty($oldValue)) {
+						cot_extrafield_unlinkfiles($oldValue, $exfld);
+						$data[$fname] = '';
+						$changed = true;
+					}
+
+					// Если загружен новый файл
+					if ($hasNewFile) {
+						// Формируем временное имя для одиночного файла
+						$tmpName = 'rxtra_' . $fname . '_' . $id . '_tmp';
+						$singleFile = [
+							'name'     => $_FILES[$postKey]['name'][$id],
+							'type'     => $_FILES[$postKey]['type'][$id],
+							'tmp_name' => $_FILES[$postKey]['tmp_name'][$id],
+							'error'    => $_FILES[$postKey]['error'][$id],
+							'size'     => $_FILES[$postKey]['size'][$id],
+						];
+
+						// Временно подменяем $_FILES
+						$oldFiles = $_FILES;
+						$_FILES[$tmpName] = $singleFile;
+
+						// Вызываем импорт с передачей старого значения
+						$newFileValue = cot_import_extrafields($tmpName, $exfld, 'P', $oldValue, 'xtra_');
+						$_FILES = $oldFiles;
+
+						// Проверяем ошибки (если cot_error_found(), не сохраняем)
+						if (cot_error_found()) {
+							// Можно прервать обработку или пропустить поле
+							// Здесь просто не сохраняем значение
+						} elseif ($newFileValue !== null && $newFileValue !== '') {
+							// Если старый файл существует и не был удалён отдельно, удалим его
+							if (!empty($oldValue) && !$deleteRequested) {
+								cot_extrafield_unlinkfiles($oldValue, $exfld);
+							}
+							$data[$fname] = $newFileValue;
+							$changed = true;
+						}
+					}
+
+					// Если ничего не изменилось, сохраняем старое значение
+					if (!$deleteRequested && !$hasNewFile) {
+						$data[$fname] = $oldValue;
+					}
+
+					continue;
+				}
+				// ============ КОНЕЦ ОБРАБОТКИ FILE ============				
+				
+                $newValue = $oldValue; // по умолчанию не меняем
+                $isPosted = isset($_POST[$postKey][$id]);
+
+                // Обработка в зависимости от типа
+                if ($exfld['field_type'] == 'checkbox') {
+                    $newValue = $isPosted ? 1 : 0;
+                } elseif ($exfld['field_type'] == 'checklistbox') {
+                    if ($isPosted && is_array($_POST[$postKey][$id])) {
+                        $raw = $_POST[$postKey][$id];
+                        unset($raw['nullval']);
+                        $filtered = array_filter($raw, 'strlen');
+                        sort($filtered);
+                        $newValue = implode(',', $filtered);
+                    } else {
+                        $newValue = '';
+                    }
+                } elseif ($exfld['field_type'] == 'datetime') {
+                    if ($isPosted && is_array($_POST[$postKey][$id])) {
+                        $raw = $_POST[$postKey][$id];
+                        $year   = isset($raw['year'])   ? (int)$raw['year']   : 0;
+                        $month  = isset($raw['month'])  ? (int)$raw['month']  : 0;
+                        $day    = isset($raw['day'])    ? (int)$raw['day']    : 0;
+                        $hour   = isset($raw['hour'])   ? (int)$raw['hour']   : 0;
+                        $minute = isset($raw['minute']) ? (int)$raw['minute'] : 0;
+                        if ($year && $month && $day) {
+                            $newValue = mktime($hour, $minute, 0, $month, $day, $year);
+                        } else {
+                            $newValue = 0;
+                        }
+                    } elseif ($isPosted) {
+                        $newValue = (int)$_POST[$postKey][$id];
+                    }
+                } else {
+                    if ($isPosted) {
+                        $raw = $_POST[$postKey][$id];
+                        $newValue = is_array($raw) ? implode(',', $raw) : trim($raw);
+                    }
+                }
+
+                // Сравнение с учётом типа
+                if ($exfld['field_type'] == 'checklistbox') {
+                    $newCompare = $newValue;
+                    if (!empty($newCompare)) {
+                        $newArray = explode(',', $newCompare);
+                        sort($newArray);
+                        $newCompare = implode(',', $newArray);
+                    }
+                    $oldCompare = $oldValue;
+                    if (!empty($oldCompare)) {
+                        $oldArray = explode(',', $oldCompare);
+                        sort($oldArray);
+                        $oldCompare = implode(',', $oldArray);
+                    }
+                    if ($newCompare != $oldCompare) {
+                        $data[$fname] = $newValue;
+                        $changed = true;
+                    }
+                } elseif ($exfld['field_type'] == 'datetime') {
+                    // Для пустых значений оба будут 0, для заполненных сравним как строки даты
+                    $newCompare = is_numeric($newValue) ? date('Y-m-d H:i', (int)$newValue) : $newValue;
+                    $oldCompare = is_numeric($oldValue) ? date('Y-m-d H:i', (int)$oldValue) : $oldValue;
+                    if ($newCompare != $oldCompare) {
+                        $data[$fname] = $newValue;
+                        $changed = true;
+                    }
+                } else {
                     if ($newValue != $oldValue) {
                         $data[$fname] = $newValue;
+                        $changed = true;
                     }
                 }
             }
-            if (!empty($data)) {
+
+            if ($changed) {
                 xtradbrowmarket_save($id, $data);
                 $updatedCount++;
             }
         }
+
+		// Перемещаем загруженные файлы после всех изменений
+		cot_extrafield_movefiles();
+
         $msg = '';
         if ($updatedCount > 0) {
             $msg .= sprintf(Cot::$L['xtradbrowmarket_updated'], $updatedCount);
@@ -179,7 +337,9 @@ if ($tab === 'edit') {
         cot_redirect($backUrl);
     }
 
+    // ========================
     // Условия WHERE для товаров
+    // ========================
     $sqlwhere = "m.fieldmrkt_title IS NOT NULL AND m.fieldmrkt_title != ''";
     $params = [];
 
@@ -293,7 +453,7 @@ if ($tab === 'edit') {
 
     if (!empty($items)) {
         foreach ($items as $row) {
-            $id = $row['fieldmrkt_id'] ?? $row['itempagid']; // в зависимости от режима id находится в разных полях
+            $id = $row['fieldmrkt_id'] ?? $row['itempagid'];
             $itemUrl = cot_url('market', !empty($row['fieldmrkt_alias'])
                 ? ['c' => $row['fieldmrkt_cat'], 'al' => $row['fieldmrkt_alias']]
                 : ['c' => $row['fieldmrkt_cat'], 'id' => $id]
@@ -306,6 +466,7 @@ if ($tab === 'edit') {
 
             foreach ($extrafields as $exfld) {
                 $fname = $exfld['field_name'];
+                // Для новых записей значение пустое (не показываем дефолты)
                 $value = $row[$fname] ?? '';
                 $inputName = 'rxtra_' . $fname . '[' . $id . ']';
                 $fieldHtml = cot_build_extrafields($inputName, $exfld, $value);
@@ -322,10 +483,12 @@ if ($tab === 'edit') {
     $t->assign(cot_generatePaginationTags($pagenav));
     $t->assign('EDIT_FORM_URL', cot_url('admin', ['m'=>'other','p'=>'xtradbrowmarket','tab'=>'edit','a'=>'update','d'=>$durl]));
 }
+
 /* ========== ВКЛАДКА РЕДАКТИРОВАНИЕ С ПЕРЕВОДАМИ (i18n) ========== */
 if ($tab === 'i18n') {
     list($pg, $d, $durl) = cot_import_pagenav('d', $perPage);
 
+    // Параметры поиска – из POST (скрытые поля) при отправке, иначе из GET
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sq        = cot_import('sq', 'P', 'TXT');
         $c         = cot_import('c', 'P', 'TXT');
@@ -345,6 +508,7 @@ if ($tab === 'i18n') {
     }
     $filter = empty($filter) ? 'all' : $filter;
 
+    // Все параметры сохраняем в URL
     $urlParams = [
         'm'         => 'other',
         'p'         => 'xtradbrowmarket',
@@ -358,6 +522,7 @@ if ($tab === 'i18n') {
 
     $showAllItems = !empty(Cot::$cfg['plugin']['xtradbrowmarket']['xtradbrowmarket_showallitems']);
 
+    // Языковые настройки
     $i18nActive = !empty(Cot::$cfg['plugin']['xtradbrowmarket']['xtradbrowmarket_i18n_use']);
     $activeLangs = [];
     $langDefault = !empty(Cot::$cfg['plugin']['xtradbrowmarket']['xtradbrowmarket_i18n_lang_code_default'])
@@ -381,42 +546,118 @@ if ($tab === 'i18n') {
         }
     }
 
-    // Сохранение
+    // Типы полей, которые можно редактировать и сохранять
+    $i18nEditableTypes = ['input', 'textarea'];
+    // Загружаем названия стран (для поля типа country)
+    $userLang = !empty(Cot::$usr['lang']) ? Cot::$usr['lang'] : Cot::$cfg['defaultlang'];
+    $countryFile = $_SERVER['DOCUMENT_ROOT'] . '/lang/' . $userLang . '/countries.' . $userLang . '.lang.php';
+    if (file_exists($countryFile)) {
+        include $countryFile;
+    }
+    // Функция форматирования значения для просмотра
+    $formatValue = function($exfld, $value) {
+        if ($value === null || $value === '') {
+            return '';
+        }
+        switch ($exfld['field_type']) {
+            case 'checkbox':
+                return $value ? Cot::$L['Yes'] : Cot::$L['No'];
+			case 'datetime':
+				if ((int)$value === 0) {
+					return '';
+				}
+				return cot_date('datetime_medium', (int)$value);
+            case 'country':
+                // Используем массив $cot_countries из файла стран
+                global $cot_countries;
+                return isset($cot_countries[$value]) ? $cot_countries[$value] : htmlspecialchars($value);
+            case 'checklistbox':
+                // Значение хранится как строка "значение1,значение2,..."
+                $parts = explode(',', $value);
+                $localized = [];
+                foreach ($parts as $part) {
+                    $part = trim($part);
+                    if ($part === '') continue;
+                    // Пытаемся найти языковой ключ: имя_поля_значение
+                    $langKey = $exfld['field_name'] . '_' . $part;
+                    $localized[] = isset(Cot::$L[$langKey]) ? Cot::$L[$langKey] : $part;
+                }
+                return htmlspecialchars(implode(', ', $localized));
+            default:
+                // Для select, radio, range и прочих пробуем локализовать через $L
+                $langKey = $exfld['field_name'] . '_' . $value;
+                if (isset(Cot::$L[$langKey])) {
+                    return Cot::$L[$langKey];
+                }
+                return htmlspecialchars($value);
+        }
+    };
+
+    // ========================
+    // Сохранение изменений
+    // ========================
     if ($a === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $ids = isset($_POST['ids']) ? array_map('intval', $_POST['ids']) : [];
         $updatedCount = 0;
+
         foreach ($ids as $id) {
-            $data = [];
             $oldData = xtradbrowmarket_load($id);
-            if (!$oldData) {
+            $isNewRecord = empty($oldData);
+            if ($isNewRecord) {
                 $oldData = [];
             }
+
+            $data = [];
+            $changed = false;
             $extrafields = xtradbrowmarket_getExtrafields();
+
+            // 1. Обрабатываем основные поля (только input и textarea)
             foreach ($extrafields as $exfld) {
+                if (!in_array($exfld['field_type'], $i18nEditableTypes)) {
+                    continue;
+                }
+
                 $fname = $exfld['field_name'];
                 $postKey = 'rxtra_' . $fname;
-                if (isset($_POST[$postKey][$id])) {
-                    $newValue = $_POST[$postKey][$id];
+
+                if ($isNewRecord) {
+                    $oldValue = $exfld['field_default'] ?? '';
+                } else {
                     $oldValue = $oldData[$fname] ?? '';
-                    if ($newValue != $oldValue) {
-                        $data[$fname] = $newValue;
-                    }
+                }
+
+                $newValue = $oldValue;
+                if (isset($_POST[$postKey][$id])) {
+                    $raw = $_POST[$postKey][$id];
+                    $newValue = is_array($raw) ? implode(',', $raw) : trim($raw);
+                }
+
+                if ($newValue != $oldValue) {
+                    $data[$fname] = $newValue;
+                    $changed = true;
                 }
             }
-            if (!empty($data)) {
+
+            if ($changed) {
                 xtradbrowmarket_save($id, $data);
                 $updatedCount++;
             }
 
+            // 2. Обрабатываем переводы (только input и textarea)
             if ($i18nActive && !empty($activeLangs)) {
                 $i18nChanged = false;
                 foreach ($extrafields as $exfld) {
-                    if (!in_array($exfld['field_type'], ['input', 'textarea'])) continue;
+                    if (!in_array($exfld['field_type'], $i18nEditableTypes)) {
+                        continue;
+                    }
                     $fname = $exfld['field_name'];
                     foreach ($activeLangs as $lang) {
+                        if ($lang === $langDefault) {
+                            continue;
+                        }
                         $i18nKey = 'rxtra_' . $fname . '_' . $lang;
                         if (isset($_POST[$i18nKey][$id])) {
-                            $newI18nValue = $_POST[$i18nKey][$id];
+                            $newI18nValue = trim($_POST[$i18nKey][$id]);
                             $oldI18nValue = xtradbrowmarket_i18n_load($id, $fname, $lang) ?? '';
                             if ($newI18nValue != $oldI18nValue) {
                                 xtradbrowmarket_i18n_save($id, $fname, $lang, $newI18nValue);
@@ -425,21 +666,28 @@ if ($tab === 'i18n') {
                         }
                     }
                 }
-                if ($i18nChanged && empty($data)) {
+                if ($i18nChanged && !$changed) {
                     $updatedCount++;
                 }
             }
         }
-        $msg = '';
-        if ($updatedCount > 0) $msg .= sprintf(Cot::$L['xtradbrowmarket_updated'], $updatedCount);
-        if (!empty($msg)) cot_message($msg);
 
-        $backUrl = cot_url('admin', array_merge($urlParams, ['d'=>$durl]));
+        $msg = '';
+        if ($updatedCount > 0) {
+            $msg .= sprintf(Cot::$L['xtradbrowmarket_updated'], $updatedCount);
+        }
+        if (!empty($msg)) {
+            cot_message($msg);
+        }
+
+        $backUrl = cot_url('admin', array_merge($urlParams, ['d' => $durl]));
         $backUrl = str_replace('&amp;', '&', $backUrl);
         cot_redirect($backUrl);
     }
 
+    // ========================
     // WHERE для товаров
+    // ========================
     $sqlwhere = "m.fieldmrkt_title IS NOT NULL AND m.fieldmrkt_title != ''";
     $params = [];
 
@@ -546,7 +794,7 @@ if ($tab === 'i18n') {
     if (!empty($extrafields)) {
         foreach ($extrafields as $exfld) {
             $t->assign('FIELD_HEADER_TITLE', htmlspecialchars(cot_extrafield_title($exfld, 'xtra_')));
-            if ($i18nActive && in_array($exfld['field_type'], ['input', 'textarea'])) {
+            if ($i18nActive && in_array($exfld['field_type'], $i18nEditableTypes)) {
                 foreach ($activeLangs as $lang) {
                     $t->assign('LANG_HEADER', strtoupper($lang));
                     $t->parse('MAIN.I18N_FIELDS_HEADER.LANG_HEADER_ROW');
@@ -571,16 +819,38 @@ if ($tab === 'i18n') {
 
             foreach ($extrafields as $exfld) {
                 $fname = $exfld['field_name'];
-                $value = $row[$fname] ?? '';
-                $inputName = 'rxtra_' . $fname . '[' . $id . ']';
-                $fieldHtml = cot_build_extrafields($inputName, $exfld, $value);
+                $isEditable = in_array($exfld['field_type'], $i18nEditableTypes);
+                $isNew = (!isset($row['itempagid']) || $row['itempagid'] === null);
+
+                // Определяем значение для отображения
+                if ($isNew) {
+                    // Для новой записи: для редактируемых полей показываем дефолт,
+                    // для остальных — пусто
+                    $value = $isEditable ? ($exfld['field_default'] ?? '') : '';
+                } else {
+                    $value = $row[$fname] ?? '';
+                }
+
+                if ($isEditable) {
+                    // Редактируемое поле: выводим форму
+                    $inputName = 'rxtra_' . $fname . '[' . $id . ']';
+                    $fieldHtml = cot_build_extrafields($inputName, $exfld, $value);
+                } else {
+                    // Нередактируемое поле: выводим читаемое значение
+                    $fieldHtml = $formatValue($exfld, $value);
+                }
                 $t->assign('FIELD_HTML', $fieldHtml);
 
-                if ($i18nActive && in_array($exfld['field_type'], ['input', 'textarea'])) {
+                // Поля переводов для редактируемых
+                if ($i18nActive && $isEditable) {
                     foreach ($activeLangs as $lang) {
                         $langValue = xtradbrowmarket_i18n_load($id, $fname, $lang) ?? '';
                         $langInputName = 'rxtra_' . $fname . '_' . $lang . '[' . $id . ']';
-                        $langHtml = cot_inputbox('text', $langInputName, $langValue, 'class="form-control form-control-sm"');
+						if ($exfld['field_type'] === 'textarea') {
+							$langHtml = cot_textarea($langInputName, $langValue, 5, 40);
+						} else {
+							$langHtml = cot_inputbox('text', $langInputName, $langValue, 'class="form-control form-control-sm"');
+						}
                         $t->assign('LANG_FIELD', $langHtml);
                         $t->parse('MAIN.I18N_ROW.FIELD_CELL.LANG_ROW');
                     }
@@ -597,7 +867,6 @@ if ($tab === 'i18n') {
     $t->assign(cot_generatePaginationTags($pagenav));
     $t->assign('I18N_FORM_URL', cot_url('admin', ['m'=>'other','p'=>'xtradbrowmarket','tab'=>'i18n','a'=>'update','d'=>$durl]));
 }
-
 cot_display_messages($t);
 $t->parse('MAIN');
 $pluginBody = $t->text('MAIN');
