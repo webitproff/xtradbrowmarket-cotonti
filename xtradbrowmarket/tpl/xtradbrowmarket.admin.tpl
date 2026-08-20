@@ -2,19 +2,24 @@
 /**
  * Admin panel for xtradbrowmarket – Statistics, Edit extrafields, Edit with i18n
  *
- * Filename: plugins/xtradbrowmarket/tpl/xtradbrowmarket.admin.tpl
+ * Filename: xtradbrowmarket.admin.tpl
  *
- * Custom Extrafields Market i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
+ * Path:     plugins/xtradbrowmarket/tpl/xtradbrowmarket.admin.tpl
  *
- * ReadMeMore:       https://abuyfile.com/ru/market/cotonti/plugs/extrafields-market-custom 
- * Support:          https://abuyfile.com/ru/forums/cotonti/original/extrafields
- * API Extrafields:  https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
+ * Extrafields Market Custom i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
  *
- * Date: Aug 11Th, 2026
+ *
+ * Source and updates   https://github.com/webitproff/xtradbrowmarket-cotonti
+ * ReadMeMore:          https://abuyfile.com/ru/market/cotonti/plugs/extrafields-users-custom
+ * Support:             https://abuyfile.com/ru/forums/cotonti/original/extrafields
+ * API Extrafields:     https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
+ *
+ * Date: Aug 21Th, 2026
+ *
  * @package xtradbrowmarket
- * @version 4.0.0
+ * @version 4.1.1
  * @author webitproff
- * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
+ * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff
  * @license BSD
  */
  -->
@@ -82,7 +87,7 @@
             <tbody>
                 <!-- BEGIN: STATS_EXTRAFIELDS_ROW -->
                 <tr>
-                    <td>{FIELD_NAME}</td>
+                    <td><code class="fs-5">{FIELD_NAME}</code></td>
                     <td>{FIELD_TYPE}</td>
                     <td>{FIELD_DESCRIPTION}</td>
                     <td>{FIELD_VARIANTS}</td>
@@ -151,7 +156,7 @@
         <!-- ENDIF -->
 	</div>
 	
-    <form method="post" action="{EDIT_FORM_URL}">
+    <form action="{EDIT_FORM_URL}" method="post" enctype="multipart/form-data">
         <input type="hidden" name="sq" value="{SEARCH_SQ_VALUE}">
         <input type="hidden" name="c" value="{SEARCH_C_VALUE}">
         <input type="hidden" name="search_in" value="{SEARCH_IN_VALUE}">
@@ -304,4 +309,21 @@
 	</form>
     <!-- ENDIF -->
 </div>
+<style>
+    .table-responsive {
+	overflow-x: auto !important;
+	display: block !important;
+	width: 100% !important;
+    }
+    .table {
+	width: max-content !important;
+	min-width: 100% !important;
+	table-layout: auto !important;
+	white-space: nowrap !important;
+    }
+    .table th,
+    .table td {
+	white-space: nowrap !important;
+    }
+</style>
 <!-- END: MAIN -->
