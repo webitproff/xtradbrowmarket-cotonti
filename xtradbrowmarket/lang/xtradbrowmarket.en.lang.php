@@ -4,15 +4,15 @@
  *
  * Filename: plugins/xtradbrowmarket/lang/xtradbrowmarket.en.lang.php
  *
- * Custom Extrafields Market i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
+ * Extrafields Market Custom i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
  *
  * ReadMeMore:       https://abuyfile.com/ru/market/cotonti/plugs/extrafields-market-custom 
  * Support:          https://abuyfile.com/ru/forums/cotonti/original/extrafields
  * API Extrafields:  https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
  *
- * Date: Aug 11Th, 2026
+ * Date: Aug 21Th, 2026
  * @package xtradbrowmarket
- * @version 4.0.0
+ * @version 4.1.1
  * @author webitproff
  * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
  * @license BSD
@@ -39,6 +39,14 @@ $url = $main_url . '/' . cot_url('admin', 'm=extrafields&n=' . $db_x . 'xtradbro
 
 $L['xtradbrowmarket'] = 'Extrafields Market Custom i18n';
 
+// Custom localization file for Cotonti using via function cot_langfile_custom() in system/functions.custom.php
+// include File from Path: plugins/xtradbrowmarket/lang/xtradbrowmarket.custom.ru.lang.php
+// How is works:  https://github.com/webitproff/functions.custom.php-cotonti
+// How is works:  https://abuyfile.com/ru/cotonti/reading/rukovodstvo-po-polzovatelskim-funkciyam-cotonti
+if (function_exists('cot_langfile_custom')) {
+    cot_langfile_custom('xtradbrowmarket', 'plug');
+}
+
 // ========================
 // PLUGIN SETTINGS (ADMIN)
 // ========================
@@ -62,9 +70,12 @@ $L['cfg_xtradbrowmarket_i18n_lang_code_second_use_hint'] = 'If active, fields fo
 $L['cfg_xtradbrowmarket_i18n_lang_code_third'] = 'Code of the third additional language';
 $L['cfg_xtradbrowmarket_i18n_lang_code_third_use'] = 'Use the third additional language';
 $L['cfg_xtradbrowmarket_i18n_lang_code_third_use_hint'] = 'If active, fields for entering translation into this language will appear in editing forms.';
-
 $L['cfg_xtradbrowmarket_showallitems'] = 'Show all items in admin panel';
 $L['cfg_xtradbrowmarket_showallitems_hint'] = 'When enabled, all items will be displayed in the editing tables, even those for which extrafield records have not been created yet.';
+
+$L['cfg_help_info'] = 'Developer Help';
+$L['xtradbrowmarket_setup_help_text'] = 'Detailed guide, links to related materials, or ask for help: <a href="https://github.com/webitproff/xtradbrowmarket-cotonti" target="_blank" title="Opens in a new tab"><strong><u>plugin repository page</u></strong></a> on GitHub.com';
+
 /**
  * Plugin Info
  */
