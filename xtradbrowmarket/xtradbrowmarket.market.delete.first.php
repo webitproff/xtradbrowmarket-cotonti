@@ -15,15 +15,15 @@
  *
  * Filename: plugins/xtradbrowmarket/xtradbrowmarket.market.delete.first.php
  *
- * Custom Extrafields Market i18n plugin for Cotonti v1.+, PHP 8.4+, MySQL 8.4 
+ * Extrafields Market Custom i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
  *
  * ReadMeMore:       https://abuyfile.com/ru/market/cotonti/plugs/extrafields-market-custom 
  * Support:          https://abuyfile.com/ru/forums/cotonti/original/extrafields
  * API Extrafields:  https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
  *
- * Date: Jul 18, 2026
+ * Date: Aug 20Th, 2026
  * @package xtradbrowmarket
- * @version 3.0.0
+ * @version 4.1.1
  * @author webitproff
  * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
  * @license BSD
@@ -43,6 +43,9 @@ if (isset($id) && $id > 0) {
             }
         }
     }
+	// Явно удаляем запись из xtradbrowmarket (ЕСЛИ ЧТО-ТО НЕ ПРОШЛО)
+    Cot::$db->delete(Cot::$db->xtradbrowmarket, 'itempagid = :id', ['id' => $id]);
+	
     // Сама запись в xtradbrowmarket (и её переводы) будет удалена каскадом
     // при удалении товара из cot_market – внешний ключ ON DELETE CASCADE.
 }
