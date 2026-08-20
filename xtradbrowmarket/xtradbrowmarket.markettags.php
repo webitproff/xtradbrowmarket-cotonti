@@ -7,11 +7,11 @@ Hooks=markettags.main
 
 /**
  * Overrides market tags in cot_generate_markettags() function
- * Теги для использования в cot_generate_markettags() (категории, товары, etc.): плагин xtradbrowmarket
- * Хук markettags.main. Добавляет в общий массив тегов переменные $temp_array + XTRA + ИМЯПОЛЯ и т.д.
- * например {LIST_ROW_XTRA_XXXXX} и {LIST_ROW_XTRA_XXXXX_TITLE}
+ * Теги для использования в cot_generate_markettags() при использовании данных товара в других плагинах и модулях
+ * например плагин "payordersmarket" заказов и корзины, или "seomarketpro"
+ * Хук markettags.main. Добавляет в общий массив тегов переменные $temp_array + XTRADBROWMARKET_ + ИМЯПОЛЯ и т.д.
  *
- * С версии 3.0.0 добавлена поддержка мультиязычности:
+ * С версии 4.1.1 добавлена поддержка мультиязычности:
  *  - для типов без встроенной локализации (input, textarea, double, inputint и т.д.)
  *    значение подменяется переводом из xtradbrowmarket_i18n, если он существует для текущего языка.
  *  - для select, radio, checklistbox по‑прежнему используется языковой массив $L.
@@ -19,15 +19,15 @@ Hooks=markettags.main
  *
  * Filename: plugins/xtradbrowmarket/xtradbrowmarket.markettags.php
  *
- * Custom Extrafields Market i18n plugin for Cotonti v1.+, PHP 8.4+, MySQL 8.4 
+ * Extrafields Market Custom i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
  *
  * ReadMeMore:       https://abuyfile.com/ru/market/cotonti/plugs/extrafields-market-custom 
  * Support:          https://abuyfile.com/ru/forums/cotonti/original/extrafields
  * API Extrafields:  https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
  *
- * Date: Jul 18, 2026
+ * Date: Aug 20Th, 2026
  * @package xtradbrowmarket
- * @version 3.0.0
+ * @version 4.1.1
  * @author webitproff
  * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
  * @license BSD
@@ -39,29 +39,11 @@ Hooks=markettags.main
  * @var array<string, mixed> $item_data
  */
  
-/* 
- * Список товаров (market.list.tpl) - только индивидуальный вывод каждого экстраполя!!!
- * 
- * Теги будут иметь префикс, заданный в cot_generate_markettags() и зависит от конкретного шаблона:
- * 
- *         <!-- IF {LIST_ROW_XTRA_DEMO_COUNTRY} -->
- *        <div class="mb-3">
- *             <img src="images/flags/{LIST_ROW_XTRA_DEMO_COUNTRY_VALUE}.svg"
- *                  style="width:24px;height:auto;" class="me-2" alt="">
- *             <strong>{LIST_ROW_XTRA_DEMO_COUNTRY_TITLE}:</strong>
- *             <span>{LIST_ROW_XTRA_DEMO_COUNTRY}</span>    <span>{LIST_ROW_XTRA_DEMO_COUNTRY_NAME}</span>
- *         </div>
- *         <!-- ENDIF -->	
- * 
- * <!-- IF {LIST_ROW_XTRA_EVENT_NAME} -->
- *     <small>{LIST_ROW_XTRA_EVENT_NAME_TITLE}: {LIST_ROW_XTRA_EVENT_NAME}</small>
- * <!-- ENDIF -->
-*/
-
 
 defined('COT_CODE') or die('Wrong URL.');
 
 require_once cot_incfile('xtradbrowmarket', 'plug');
+
 
 $extrafields = xtradbrowmarket_getExtrafields();
 if (!empty($extrafields) && !empty($item_data['fieldmrkt_id'])) {
@@ -71,7 +53,7 @@ if (!empty($extrafields) && !empty($item_data['fieldmrkt_id'])) {
         $builtInI18nTypes = ['select', 'radio', 'checklistbox', 'checkbox'];
 
         foreach ($extrafields as $exfld) {
-            $tag = 'XTRA_' . strtoupper($exfld['field_name']);
+            $tag = strtoupper($exfld['field_name']);
             $value = $xtra_data[$exfld['field_name']] ?? null;
 
             // Подмена значения на перевод, если мультиязычность включена и тип поля не
@@ -82,9 +64,9 @@ if (!empty($extrafields) && !empty($item_data['fieldmrkt_id'])) {
                 $displayValue = xtradbrowmarket_i18n_get_value($item_data['fieldmrkt_id'], $exfld['field_name'], $value);
             }
 
-            $temp_array[$tag] = cot_build_extrafields_data('xtra', $exfld, $displayValue, $item_data['fieldmrkt_parser']);
-            $temp_array[$tag . '_TITLE'] = cot_extrafield_title($exfld, 'xtra_');
-            $temp_array[$tag . '_VALUE'] = $displayValue;
+            $temp_array['XTRADBROWMARKET_' . $tag] = cot_build_extrafields_data('xtra', $exfld, $displayValue);
+            $temp_array['XTRADBROWMARKET_' . $tag . '_TITLE'] = cot_extrafield_title($exfld, 'xtra_');
+            $temp_array['XTRADBROWMARKET_' . $tag . '_VALUE'] = $displayValue;
 
             // Название страны, если поле — country (используем оригинальный код страны)
             if ($exfld['field_type'] === 'country') {
@@ -93,17 +75,19 @@ if (!empty($extrafields) && !empty($item_data['fieldmrkt_id'])) {
                     include $country_lang;
                 }
                 // $value содержит код страны (ua, us), а не переведённое название
-                $temp_array[$tag . '_NAME'] = isset($cot_countries[$value]) ? $cot_countries[$value] : $value;
+				// _NAME - пользовательский суффикс для вывода переведенного названия страны 
+				// например {XXXXX_XXX_XTRADBROWMARKET_DEMO_COUNTRY_NAME}
+                $temp_array['XTRADBROWMARKET_' . $tag . '_NAME'] = isset($cot_countries[$value]) ? $cot_countries[$value] : $value;
             }
         }
     } else {
         foreach ($extrafields as $exfld) {
-            $tag = 'XTRA_' . strtoupper($exfld['field_name']);
-            $temp_array[$tag] = '';
-            $temp_array[$tag . '_TITLE'] = '';
-            $temp_array[$tag . '_VALUE'] = '';
+            $tag = strtoupper($exfld['field_name']);
+            $temp_array['XTRADBROWMARKET_' . $tag] = '';
+            $temp_array['XTRADBROWMARKET_' . $tag . '_TITLE'] = '';
+            $temp_array['XTRADBROWMARKET_' . $tag . '_VALUE'] = '';
             if ($exfld['field_type'] === 'country') {
-                $temp_array[$tag . '_NAME'] = '';
+                $temp_array['XTRADBROWMARKET_' . $tag . '_NAME'] = '';
             }
         }
     }
