@@ -9,22 +9,22 @@ Hooks=header.tags
  * Вывод в «шапке» сайта: плагин xtradbrowmarket
  * Хук header.tags. Позволяет использовать теги {MARKET_HEADER_XTRA_ИМЯПОЛЯ} для SEO-тегов и других элементов <head>.
  *
- * С версии 3.0.0 добавлена поддержка мультиязычности:
+ * С версии 4.1.1 добавлена поддержка мультиязычности:
  *  - для типов без встроенной локализации (input, textarea, double, inputint и т.д.)
  *    значение подменяется переводом из xtradbrowmarket_i18n, если он существует для текущего языка.
  *  - для select, radio, checklistbox по‑прежнему используется языковой массив $L.
  *
  * Filename: plugins/xtradbrowmarket/xtradbrowmarket.header.tags.php
  *
- * Custom Extrafields Market i18n plugin for Cotonti v1.+, PHP 8.4+, MySQL 8.4 
+ * Extrafields Market Custom i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
  *
  * ReadMeMore:       https://abuyfile.com/ru/market/cotonti/plugs/extrafields-market-custom 
  * Support:          https://abuyfile.com/ru/forums/cotonti/original/extrafields
  * API Extrafields:  https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
  *
- * Date: Jul 18, 2026
+ * Date: Aug 20Th, 2026
  * @package xtradbrowmarket
- * @version 3.0.0
+ * @version 4.1.1
  * @author webitproff
  * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
  * @license BSD
