@@ -1,6 +1,6 @@
 <?php
 /**
- * центральные функции плагина (v3.0.0 с поддержкой i18n)
+ * центральные функции плагина (v4.1.1 с поддержкой i18n)
  *
  * Файл:     plugins/xtradbrowmarket/inc/xtradbrowmarket.functions.php
  * Назначение: предоставляет базовые операции чтения/записи в таблицу `cot_xtradbrowmarket`,
@@ -16,15 +16,15 @@
  *     `fieldmrkt_id` из таблицы `cot_market`. Благодаря ON DELETE CASCADE удаление товара
  *     автоматически удаляет строку из нашей таблицы на уровне БД.
  *
- * Custom Extrafields Market i18n plugin for Cotonti v1.+, PHP 8.4+, MySQL 8.4 
+ * Extrafields Market Custom i18n plugin for Cotonti v1.+, PHP 8.5+, MySQL 8.4 
  *
  * ReadMeMore:       https://abuyfile.com/ru/market/cotonti/plugs/extrafields-market-custom 
  * Support:          https://abuyfile.com/ru/forums/cotonti/original/extrafields
  * API Extrafields:  https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
  *
- * Date: Jul 18, 2026
+ * Date: Aug 20Th, 2026
  * @package xtradbrowmarket
- * @version 3.0.0
+ * @version 4.1.1
  * @author webitproff
  * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
  * @license BSD
@@ -43,6 +43,105 @@ require_once cot_incfile('extrafields');
 Cot::$db->registerTable('xtradbrowmarket');
 Cot::$db->registerTable('xtradbrowmarket_i18n');
 
+// Регистрируем таблицу в реестре экстраполей,
+// чтобы Cot::$extrafields[Cot::$db->xtradbrowmarket] был гарантированно массивом
+cot_extrafields_register_table('xtradbrowmarket');
+
+
+
+/* 
+ * ============================================================
+ * НАЧАЛО | СЕКЦИЯ: ВЫВОД СПРАВОЧНОГО БЛОКА В НАСТРОЙКАХ ПЛАГИНА
+ * ============================================================ 
+*/
+
+/**
+ * Callback-функция для вывода справочного блока в настройках плагина.
+ *
+ * Используется в секции [BEGIN_COT_EXT_CONFIG] файла setup.php
+ * при указании типа `custom`:
+ *   help_info=11:custom:xtradbrowmarket_setup_help_block()::Справка
+ *
+ * Возвращает HTML-код блока с подсказкой.
+ * Текст берется из языкового файла по ключу 'xtradbrowmarket_setup_help_text'.
+ *
+ * @return string HTML-код блока подсказки
+ */
+function xtradbrowmarket_setup_help_block()
+{
+    // Делаем глобальный массив языковых строк доступным внутри функции
+    global $L;
+
+    // Ключ в массиве $L, содержащий текст подсказки
+    $langKey = 'xtradbrowmarket_setup_help_text';
+
+    // Инициализируем переменную для текста подсказки
+    $helpText = '';
+
+    // По умолчанию используем красный алерт (danger) для случая, если строка не найдена
+    $alertClass = 'alert-danger';
+
+    // Если ключ существует, является строкой и не пустой
+    if (isset($L[$langKey]) && is_string($L[$langKey]) && $L[$langKey] !== '') {
+        // Используем значение из языкового файла
+        $helpText = $L[$langKey];
+        // Меняем класс на синий информационный алерт
+        $alertClass = 'alert-info';
+    }
+    // Во всех остальных случаях
+    else {
+        // Определяем текущий язык пользователя 
+        $currentLang = isset(Cot::$usr['lang']) && !empty(Cot::$usr['lang'])
+            ? Cot::$usr['lang']
+            : (isset(Cot::$cfg['defaultlang']) ? Cot::$cfg['defaultlang'] : 'en');
+
+        // Если язык русский, выводим русское сообщение
+        if ($currentLang === 'ru') {
+            $helpText = 'Документация не найдена, потому что строки '
+                      . '<code>$L[\'' . $langKey . '\']</code> '
+                      . 'нет в файле переводов вашей текущей локализации интерфейса.';
+        } else {
+            // Для английского и всех остальных языков используем английский текст
+            $helpText = 'Documentation is missing because the '
+                      . '<code>$L[\'' . $langKey . '\']</code> '
+                      . 'string is not present in your current interface translation file.';
+        }
+    }
+
+    // Оборачиваем текст в HTML-блок с выбранным CSS-классом Bootstrap (alert-info или alert-danger).
+    // НЕ используем htmlspecialchars, так как $helpText может содержать
+    // разрешенные HTML-теги (например, ссылки).
+    $html = '<div class="alert ' . $alertClass . '">'
+          . $helpText
+          . '</div>';
+
+    // Возвращаем готовый HTML-код
+    return $html;
+}
+
+/**
+ * Функция-фильтр для custom-поля help_info.
+ *
+ * Вызывается Cotonti автоматически при сохранении настроек плагина.
+ * Поскольку справочный блок не предназначен для сохранения значения,
+ * возвращаем null, чтобы система не пыталась записать данные в БД.
+ *
+ * @param mixed $newValue  Входное значение, переданное из формы (обычно пустое)
+ * @param array $cfgVar    Массив с данными конфигурационной переменной
+ * @return null            Всегда возвращает null
+ */
+function xtradbrowmarket_setup_help_block_filter($new_value, $cfg_var)
+{
+    // Ничего не сохраняем, просто возвращаем null
+    return null;
+}
+
+/* 
+ * ============================================================
+ * КОНЕЦ | СЕКЦИЯ: ВЫВОД СПРАВОЧНОГО БЛОКА В НАСТРОЙКАХ ПЛАГИНА
+ * ============================================================ 
+
+
 /**
  * Возвращает массив зарегистрированных экстраполей для таблицы cot_xtradbrowmarket
  *
@@ -53,7 +152,9 @@ Cot::$db->registerTable('xtradbrowmarket_i18n');
  */
 function xtradbrowmarket_getExtrafields()
 {
-    return Cot::$extrafields[Cot::$db->xtradbrowmarket] ?? [];
+    $fields = Cot::$extrafields[Cot::$db->xtradbrowmarket] ?? [];
+    ksort($fields);
+    return $fields;
 }
 
 /**
@@ -75,19 +176,31 @@ function xtradbrowmarket_load($page_id)
  * Сохраняет (INSERT или UPDATE) запись дополнительных полей товара
  *
  * Логика работы:
- *   1. Проверяет, существует ли уже запись для данного `$page_id`.
- *   2. Если существует — выполняет UPDATE по первичному ключу `itempagid`.
- *   3. Если не существует — выполняет INSERT, вручную задавая значение `itempagid`.
+ *   1. Нормализует значения: если поле содержит массив, преобразует его в строку через запятую.
+ *   2. Проверяет, существует ли уже запись для данного `$page_id`.
+ *   3. Если существует — выполняет UPDATE по первичному ключу `itempagid`.
+ *   4. Если не существует — выполняет INSERT, вручную задавая значение `itempagid`.
  *
  * Обратите внимание: массив `$data` должен содержать ключи, соответствующие
  * физическим именам колонок в таблице (без префикса). Например:
  * `['phone_extra' => '+123456789', 'interests' => 'IT,Спорт']`.
+ * Если значение является массивом (например, из поля checklistbox),
+ * оно будет автоматически преобразовано в строку с разделителем `,`.
  *
  * @param int   $page_id ID страницы (будет записан в колонку `itempagid`)
  * @param array $data    Ассоциативный массив значений экстраполей
  */
 function xtradbrowmarket_save($page_id, $data)
 {
+    // Нормализуем значения: если массив, преобразуем в строку через запятую.
+    // Это необходимо для полей типа checklistbox, которые отправляют массив выбранных значений.
+    foreach ($data as $key => $value) {
+        if (is_array($value)) {
+            // Преобразуем массив в строку с разделителем ","
+            $data[$key] = implode(',', $value);
+        }
+    }
+
     // Проверяем, есть ли уже запись
     $exists = Cot::$db->query(
         "SELECT COUNT(*) FROM " . Cot::$db->xtradbrowmarket . " WHERE itempagid = ?",
