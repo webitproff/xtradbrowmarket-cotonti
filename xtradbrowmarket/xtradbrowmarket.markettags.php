@@ -77,7 +77,9 @@ if (!empty($extrafields) && !empty($item_data['fieldmrkt_id'])) {
                 // $value содержит код страны (ua, us), а не переведённое название
 				// _NAME - пользовательский суффикс для вывода переведенного названия страны 
 				// например {XXXXX_XXX_XTRADBROWMARKET_DEMO_COUNTRY_NAME}
-                $temp_array['XTRADBROWMARKET_' . $tag . '_NAME'] = isset($cot_countries[$value]) ? $cot_countries[$value] : $value;
+                //$temp_array['XTRADBROWMARKET_' . $tag . '_NAME'] = isset($cot_countries[$value]) ? $cot_countries[$value] : $value; // line 80
+				$countryCode = $value ?? '';
+				$temp_array['XTRADBROWMARKET_' . $tag . '_NAME'] = isset($cot_countries[$countryCode]) ? $cot_countries[$countryCode] : $countryCode;
             }
         }
     } else {
