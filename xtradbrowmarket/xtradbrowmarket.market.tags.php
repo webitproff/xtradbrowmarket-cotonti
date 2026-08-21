@@ -74,7 +74,9 @@ if (!empty($item['fieldmrkt_id'])) {
 
                 // Название страны, если поле — country
                 if ($exfld['field_type'] === 'country') {
-                    $t->assign('MARKET_XTRA_' . $tag . '_NAME', isset($cot_countries[$displayValue]) ? $cot_countries[$displayValue] : $displayValue);
+                // $displayValue содержит код страны (null, cn, us), а не переведённое название
+					$countryCode = $displayValue ?? '';
+					$t->assign('MARKET_XTRA_' . $tag . '_NAME', isset($cot_countries[$countryCode]) ? $cot_countries[$countryCode] : $countryCode);
                 }
 
                 $t->parse('MAIN.XTRA_EXTRAFLD');
