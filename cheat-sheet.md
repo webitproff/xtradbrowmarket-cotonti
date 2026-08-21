@@ -744,8 +744,35 @@ Cotonti использует собственный шаблонизатор **X
 <!-- ENDIF -->
 ```
 
+
 Аналогично для всех остальных полей. **Конкретный префикс зависит от контекста вызова.** В разных расширениях он может быть `PRODUCT_`, `CART_ROW_`, `ORDER_` и т.д. Общее правило: если в шаблоне вы видите теги вроде `{ITEM_TITLE}`, `{ITEM_ID}`, значит функция была вызвана с префиксом `ITEM_`. Тогда все добавленные хуком теги следует использовать с этим же префиксом: `{ITEM_XTRADBROWMARKET_EVENT_NAME}`.
 
+#### 7.4.1 Пример использования в шаблоне market.userdetails.tpl
+**Список товаров/услуг на публичной странице профиля пользователя**
+
+```
+<!-- IF {MARKET_ROW_XTRADBROWMARKET_DEMO_COUNTRY_VALUE} -->
+<div class="d-flex mb-3">
+	<div class="contact-icon about me-3"><i class="fa-solid fa-circle-info fa-xl"></i></div>
+	<div>
+		<div class="contact-label">{MARKET_ROW_XTRADBROWMARKET_DEMO_COUNTRY_TITLE}</div>
+		<div class="contact-value">{MARKET_ROW_XTRADBROWMARKET_DEMO_COUNTRY} {MARKET_ROW_XTRADBROWMARKET_DEMO_COUNTRY_NAME}</div>
+	</div>
+</div>
+<!-- ENDIF -->
+<!-- IF {MARKET_ROW_XTRADBROWMARKET_011_GITHUB_RC} -->
+<div data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="{PHP.L.xtradbrowmarket_github_rc_tooltip}">
+	<a 
+	target="_blank" rel="nofollow noreferrer noopener"
+	href="{MARKET_ROW_XTRADBROWMARKET_011_GITHUB_RC}"
+	class="btn btn-common btn-github btn-lg w-100"
+	>
+		<i class="fa-brands fa-github mx-2 fa-2xl"></i>
+		<span>{MARKET_ROW_XTRADBROWMARKET_011_GITHUB_RC_TITLE}</span>
+	</a>
+</div>
+<!-- ENDIF -->	
+```
 **Напоминание:** Для стандартного списка товаров (`market.list.tpl`) используйте **раздел 8**, так как там применяется отдельный хук с префиксом `LIST_ROW_XTRA_`.
 
 <a name="main-i18n"></a>
