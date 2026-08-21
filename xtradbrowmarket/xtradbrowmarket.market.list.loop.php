@@ -43,9 +43,9 @@ Hooks=market.list.loop
  * Support:          https://abuyfile.com/ru/forums/cotonti/original/extrafields
  * API Extrafields:  https://github.com/Cotonti/Cotonti/blob/master/system/extrafields.php
  *
- * Date: Aug 20Th, 2026
+ * Date: Aug 21Th, 2026
  * @package xtradbrowmarket
- * @version 4.1.1
+ * @version 4.1.2
  * @author webitproff
  * @copyright Copyright (c) webitproff 2026 | https://github.com/webitproff/xtradbrowmarket-cotonti
  * @license BSD
@@ -92,7 +92,7 @@ if (!empty($extrafields) && !empty($item['fieldmrkt_id'])) {
                 'LIST_ROW_XTRA_EXTRAFLD'       => cot_build_extrafields_data('xtra', $exfld, $displayValue),
                 'LIST_ROW_XTRA_EXTRAFLD_TITLE' => cot_extrafield_title($exfld, 'xtra_'),
             ]);
-            $t->parse('MAIN.USERS_ROW.XTRA_EXTRAFLD');
+            $t->parse('MAIN.LIST_ROW.XTRA_EXTRAFLD');
             // === Конец группового цикла ===
 
             // Название страны, если поле — country (используем оригинальный код страны)
@@ -101,8 +101,9 @@ if (!empty($extrafields) && !empty($item['fieldmrkt_id'])) {
                 if (file_exists($country_lang)) {
                     include $country_lang;
                 }
-                // $value содержит код страны (ua, us), а не переведённое название
-                $t->assign('LIST_ROW_XTRA_' . $tag . '_NAME', isset($cot_countries[$value]) ? $cot_countries[$value] : $value);
+                // $value содержит код страны (null, cn, us), а не переведённое название
+				$countryCode = $value ?? '';
+				$t->assign('LIST_ROW_XTRA_' . $tag . '_NAME', isset($cot_countries[$countryCode]) ? $cot_countries[$countryCode] : $countryCode);
             }
         }
     } else {
